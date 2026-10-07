@@ -58,6 +58,27 @@ def summarize(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def dry_run_report(rows: list[dict], ts: datetime, n_games: int = 5) -> str:
+    """Counts by venue/group/kind plus the next kickoffs (Polymarket's gameStartTime is real
+    kickoff; Kalshi's event_time is ~3h after it, so kickoffs come from Polymarket)."""
+    c = Counter((r["venue"], r["group"], r["kind"]) for r in rows)
+    lines = [f"{'venue':14} {'group':5} {'kind':7} {'markets':>7}"]
+    lines += [f"{v:14} {g:5} {k:7} {n:>7}" for (v, g, k), n in sorted(c.items())]
+    lines.append(f"{'total':28} {len(rows):>7}")
+    games = {}
+    for r in rows:
+        if r["venue"] == "polymarket_us" and r["group"] == "nfl" and r["event_time"] >= ts:
+            games[r["event_ticker"]] = r["event_time"]
+    lines.append("\nnearest NFL games (kickoff UTC, Polymarket markets per game):")
+    for slug, t in sorted(games.items(), key=lambda kv: kv[1])[:n_games]:
+        teams = slug.split("-")[1:3]
+        pm = sum(1 for r in rows if r["event_ticker"] == slug)
+        lines.append(
+            f"  {t:%a %Y-%m-%d %H:%M} {'@'.join(x.upper() for x in teams):10} polymarket_us={pm}"
+        )
+    return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("data_root", type=Path)
@@ -85,6 +106,8 @@ def main(argv: list[str] | None = None) -> int:
             n = write_snapshot(rows, path)
             print(f"wrote {path} ({n} rows, {path.stat().st_size / 1024:.0f} KiB)")
     print(summarize(all_rows))
+    if args.dry_run:
+        print("\n" + dry_run_report(all_rows, ts))
     if not all_rows:
         print("::error title=Snapshot failed::no markets captured from any venue")
         return 1
