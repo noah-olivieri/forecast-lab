@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forecast log - Forecast Lab</title>
+<meta name="description" content="Every logged forecast, the market price it was compared with, and the GitHub commit that proves when it was made.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<script>
+  try {
+    var t = localStorage.getItem("theme");
+    if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.dataset.theme = t;
+  } catch (e) {}
+  var q = new URLSearchParams(location.search).get("theme");
+  if (q === "light" || q === "dark") document.documentElement.dataset.theme = q;
+</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<div class="ticker" id="ticker"></div>
+
+<div class="nav-wrap">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html" aria-label="Forecast Lab home">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+        <rect x="1" y="9" width="26" height="10" rx="5" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.5"/>
+        <path d="M19.5 8.5 25 14 19.5 19.5 14 14Z" fill="var(--model)" stroke="var(--model)" stroke-width="1.5" stroke-linejoin="round"/>
+        <rect x="7" y="6.5" width="3" height="15" rx="1.5" fill="var(--market)"/>
+      </svg>
+      <span>Forecast Lab</span>
+    </a>
+    <a class="l l-home" href="index.html"><span class="long">Home</span></a>
+    <a class="l" href="log.html" aria-current="page"><span class="long">Forecast log</span><span class="short">Log</span></a>
+    <a class="l" href="week.html"><span class="long">This week</span><span class="short">Week</span></a>
+    <a class="l" href="method.html">Method</a>
+    <button class="toggle" type="button" aria-label="Switch color theme" id="theme">
+      <!-- Phosphor "moon" and "sun" (regular), MIT license, inlined -->
+      <svg class="moon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg>
+      <svg class="sun" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg>
+    </button>
+  </nav>
+</div>
+
+<main>
+  <div class="page-head">
+    <h1>Forecast log</h1>
+    <p class="lede">Every forecast, the market price it is compared with, and the commit that shows when it was made.</p>
+  </div>
+  <div id="app">
+    <section class="panel" aria-labelledby="log-h">
+      <h2 id="log-h">Logged forecasts</h2>
+      <p class="panel-sub" id="log-sub">&nbsp;</p>
+      <div id="log-body"></div>
+    </section>
+    <section class="panel" aria-labelledby="lock-h">
+      <h2 id="lock-h">Coming up</h2>
+      <p class="panel-sub">Each forecast locks 24 hours before kickoff and is pushed to GitHub.</p>
+      <ul class="locks" id="locks"></ul>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span>Paper trading only. No real money is involved.</span>
+  <span id="built"></span>
+  <a href="https://github.com/noah-olivieri/forecast-lab">Source and data on GitHub</a>
+</footer>
+
+<script src="assets/site.js"></script>
+<script src="assets/strip.js"></script>
+<script src="assets/log.js"></script>
+</body>
+</html>
