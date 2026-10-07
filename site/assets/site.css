@@ -292,7 +292,24 @@ h1 {
 .roadmap b { color: var(--ink); font-weight: 600; }
 
 /* Forecast log: a real table that stacks into labelled rows on a phone */
-.tbl { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 15px; }
+/* The table scrolls sideways inside its card when it does not fit (tablet widths). The four-layer
+   background draws a soft edge only on the side that still has content to scroll to. */
+.tbl-scroll {
+  margin-top: 18px; overflow-x: auto; overscroll-behavior-x: contain; border-radius: 12px;
+  background:
+    linear-gradient(to right, var(--surface) 30%, transparent) left center / 40px 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 30%, transparent) right center / 40px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(15, 23, 42, .18), transparent) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(15, 23, 42, .18), transparent) right center / 12px 100% no-repeat scroll;
+}
+:root[data-theme="dark"] .tbl-scroll {
+  background:
+    linear-gradient(to right, var(--surface) 30%, transparent) left center / 40px 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 30%, transparent) right center / 40px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, .55), transparent) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, .55), transparent) right center / 12px 100% no-repeat scroll;
+}
+.tbl { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 15px; }
 .tbl th { text-align: left; font-weight: 500; font-size: 13px; color: var(--ink-2); padding: 0 18px 10px 0; border-bottom: 1px solid var(--hair); vertical-align: bottom; }
 .tbl td { padding: 14px 18px 14px 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
 .tbl th:last-child, .tbl td:last-child { padding-right: 0; }
@@ -419,6 +436,8 @@ footer a { text-underline-offset: 3px; display: inline-flex; align-items: center
   .status { grid-template-columns: 1fr; gap: 28px; margin-top: 36px; }
   footer a { min-height: 44px; }
 
+  .tbl-scroll { overflow: visible; background: none; }
+  .tbl { min-width: 0; }
   .tbl, .tbl tbody, .tbl tr, .tbl td { display: block; width: 100%; }
   .tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .tbl tr { padding: 14px 0; border-bottom: 1px solid var(--hair); display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }

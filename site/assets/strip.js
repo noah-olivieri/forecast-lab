@@ -157,11 +157,19 @@
 
   /* Shared by the home and week pages: what the model lane says before there is a model. */
   Lab.MODEL_LABELS = { "elo-538-default-v0": "Elo baseline (v0, untuned)" };
+  /* Where a game stands, from the data and the viewer's clock (not the build time):
+       logged  a forecast CSV is on main
+       locks   lock time is still ahead
+       missed  lock time has passed and no forecast was logged: "Not logged" */
+  Lab.lockState = function (g, now) {
+    if (g.logged) return "logged";
+    return new Date(g.lock_utc) > now ? "locks" : "missed";
+  };
   Lab.lockText = function (g, now) {
-    var lock = new Date(g.lock_utc), kick = new Date(g.kickoff_utc);
-    if (now < lock) return "Model locks " + Lab.stamp(lock).replace(/ PT$/, "") + " PT (24h before kickoff)";
-    if (now < kick) return "Lock time has passed. The forecast shows here once it is pushed to GitHub.";
-    return "No forecast was logged for this game.";
+    var st = Lab.lockState(g, now);
+    if (st === "locks") return "Model locks " + Lab.stamp(new Date(g.lock_utc)) + " (24h before kickoff)";
+    if (new Date(g.kickoff_utc) > now) return "Not logged. It shows here once the forecast is pushed to GitHub.";
+    return "Not logged. No forecast was made before kickoff.";
   };
   Lab.stripInput = function (g, market, now) {
     var q = (market.games || {})[g.id] || {};

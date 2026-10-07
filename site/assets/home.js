@@ -53,9 +53,13 @@ Lab.boot(function (d, now) {
   var n = d.meta.games_logged;
   document.getElementById("st-logged").textContent = String(n);
   var note = document.getElementById("st-logged-note");
-  if (n === 0 && g) {
-    note.textContent = "The first, " + Lab.team(g.away) + " at " + Lab.team(g.home) + ", locks " + Lab.stamp(new Date(g.lock_utc)) +
-      " and goes to GitHub before kickoff. GitHub's push time is the receipt, and any later change shows in the history.";
+  var nextLock = upcoming.filter(function (x) { return Lab.lockState(x, now) === "locks"; })[0];
+  if (n === 0 && nextLock) {
+    var when = Lab.stamp(new Date(nextLock.lock_utc)), who = Lab.team(nextLock.away) + " at " + Lab.team(nextLock.home);
+    note.textContent = (Lab.lockState(g, now) === "missed"
+      ? "The next to lock is " + who + ", " + when + ". "
+      : "The first, " + who + ", locks " + when + ". ") +
+      "It goes to GitHub before kickoff. GitHub's push time is the receipt, and any later change shows in the history.";
   } else if (n === 0) {
     note.textContent = "Forecasts appear here once their files are pushed to GitHub.";
   } else {

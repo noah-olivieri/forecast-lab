@@ -3,11 +3,15 @@ name: pages
 # Builds site/data/*.json (jobs/build_site.py) and deploys site/ to GitHub Pages on every push to
 # main, so a forecast push updates the site too. The build reads the `data` branch with
 # `git show`, so it needs the full history (fetch-depth: 0): that also lets it find the commit
-# that first added each forecast CSV for the commit links. Market prices are as of the build;
-# they refresh on the next deploy (push to main or a manual run).
+# that first added each forecast CSV for the commit links. Market prices are as of the build, so
+# an hourly run at :50 (the collector's :05 snapshot is long saved by then) keeps them fresh.
+# Scheduled runs use the default branch's copy of this file, so the schedule starts once this
+# file is on main.
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "50 * * * *"
   workflow_dispatch:
 
 permissions:

@@ -36,8 +36,9 @@ Lab.boot(function (d, now) {
         (r ? S.rng(r) : "no quote") + "</span></div>";
     };
     var mdl = g.model ? '<div class="k-model"><span class="nm">Model</span><span class="num">' + S.fmt(g.model.p_home) + "¢</span></div>" : "";
-    var state = g.logged ? '<span class="state"><i class="fdot"></i>Forecast logged</span>'
-      : over ? "<span>No forecast logged</span>"
+    var st = Lab.lockState(g, now);
+    var state = st === "logged" ? '<span class="state"><i class="fdot"></i>Forecast logged</span>'
+      : st === "missed" ? "<span>Not logged</span>"
       : "<span>Locks " + esc(Lab.pt(new Date(g.lock_utc), true)) + " PT</span>";
     html += '<li class="game"><div class="g-who"><b>' + esc(g.away) + " at " + esc(g.home) + "</b><span>" +
       esc(Lab.pt(kick)) + " PT" + (over ? ", started" : "") + "</span>" + state + "</div>" + S.mini(s) +

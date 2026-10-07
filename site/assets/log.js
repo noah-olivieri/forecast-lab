@@ -31,14 +31,14 @@ Lab.boot(function (d, now) {
 
   if (!order.length) {
     sub.textContent = "Nothing logged yet.";
-    var g0 = upcoming[0];
-    body.innerHTML = '<p class="msg" style="padding-bottom:4px">No forecast file is in <code>forecasts/</code> on <code>main</code> yet. ' +
-      (g0 ? "The first, " + esc(Lab.team(g0.away)) + " at " + esc(Lab.team(g0.home)) + ", locks " + esc(Lab.stamp(new Date(g0.lock_utc))) + ". " : "") +
-      "It shows up here once the file is pushed, with the prices it was compared against and a link to its commit.</p>";
+    var g0 = upcoming.filter(function (g) { return Lab.lockState(g, now) === "locks"; })[0];
+    body.innerHTML = '<p class="msg">No forecast file is in <code>forecasts/</code> on <code>main</code> yet. ' +
+      (g0 ? "The next to lock, " + esc(Lab.team(g0.away)) + " at " + esc(Lab.team(g0.home)) + ", locks " + esc(Lab.stamp(new Date(g0.lock_utc))) + ". " : "") +
+      "A forecast shows up here once its file is pushed, with the prices it was compared against and a link to its commit.</p>";
   } else {
     sub.textContent = order.length + " game" + (order.length === 1 ? "" : "s") + " in " + files.length + " file" + (files.length === 1 ? "" : "s") +
       ". Every number is the home team's win probability.";
-    var html = '<table class="tbl"><thead><tr><th scope="col">Game</th><th scope="col" class="r">Elo baseline</th><th scope="col" class="r">Home rate</th>' +
+    var html = '<div class="tbl-scroll" tabindex="0" role="region" aria-label="Logged forecasts, scrolls sideways"><table class="tbl"><thead><tr><th scope="col">Game</th><th scope="col" class="r">Elo baseline</th><th scope="col" class="r">Home rate</th>' +
       '<th scope="col" class="r">Kalshi</th><th scope="col" class="r">Polymarket</th><th scope="col">Logged</th><th scope="col">Proof</th></tr></thead><tbody>';
     order.forEach(function (k) {
       var gr = groups[k], f = fileBy[gr.file], g = gameBy[gr.game] || {};
@@ -67,7 +67,7 @@ Lab.boot(function (d, now) {
         '<td data-label="Logged">' + esc(Lab.stamp(made)) + '<span class="sub">prices from ' + esc(Lab.stamp(new Date(any.snapshot_ts))) + "</span></td>" +
         '<td class="proof" data-label="Proof">' + proof + "</td></tr>";
     });
-    html += "</tbody></table>";
+    html += "</tbody></table></div>";
     html += '<ul class="files">' + files.map(function (f) {
       return "<li>" + (f.blob_url ? '<a href="' + esc(f.blob_url) + '">' + esc(f.path) + "</a>" : "<span>" + esc(f.path) + "</span>") +
         "<span>" + f.rows + " rows</span>" + (f.commit_ts ? "<span>committed " + esc(Lab.stamp(new Date(f.commit_ts))) + "</span>" : "") + "</li>";
@@ -78,10 +78,10 @@ Lab.boot(function (d, now) {
     sub.textContent += " " + (files.length - pushed) + " not on main yet.";
   }
 
-  var locks = upcoming.filter(function (g) { return !g.logged; }).slice(0, 6);
+  // Only games whose lock time is still ahead. A game past its lock with no forecast is not
+  // "coming up"; the Week page marks it "Not logged".
+  var locks = upcoming.filter(function (g) { return Lab.lockState(g, now) === "locks"; }).slice(0, 6);
   document.getElementById("locks").innerHTML = locks.length ? locks.map(function (g) {
-    var lock = new Date(g.lock_utc), past = lock < now;
-    return "<li><b>" + esc(Lab.team(g.away)) + " at " + esc(Lab.team(g.home)) + "</b><span>" +
-      (past ? "Lock time passed " + esc(Lab.stamp(lock)) : "Locks " + esc(Lab.stamp(lock))) + "</span></li>";
-  }).join("") : "<li><span>No more games on the schedule.</span></li>";
+    return "<li><b>" + esc(Lab.team(g.away)) + " at " + esc(Lab.team(g.home)) + "</b><span>Locks " + esc(Lab.stamp(new Date(g.lock_utc))) + "</span></li>";
+  }).join("") : "<li><span>No more locks on the schedule.</span></li>";
 });
