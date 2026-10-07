@@ -7,7 +7,9 @@
 <meta name="description" content="NFL win probabilities committed to GitHub before kickoff and scored against Kalshi and Polymarket prices. Paper trading only.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <script>
+  document.documentElement.classList.add("js");
   try {
     var t = localStorage.getItem("theme");
     if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -19,84 +21,55 @@
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
-
+<a class="skip" href="#main">Skip to content</a>
 <div class="ticker" id="ticker"></div>
-
-<div class="nav-wrap">
-  <nav class="nav glass" aria-label="Main">
-    <a class="brand" href="index.html" aria-label="Forecast Lab home">
-      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
-        <rect x="1" y="9" width="26" height="10" rx="5" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.5"/>
-        <path d="M19.5 8.5 25 14 19.5 19.5 14 14Z" fill="var(--model)" stroke="var(--model)" stroke-width="1.5" stroke-linejoin="round"/>
-        <rect x="7" y="6.5" width="3" height="15" rx="1.5" fill="var(--market)"/>
-      </svg>
-      <span>Forecast Lab</span>
-    </a>
-    <a class="l l-home" href="index.html" aria-current="page"><span class="long">Home</span></a>
-    <a class="l" href="log.html"><span class="long">Forecast log</span><span class="short">Log</span></a>
-    <a class="l" href="week.html"><span class="long">This week</span><span class="short">Week</span></a>
-    <a class="l" href="method.html">Method</a>
-    <button class="toggle" type="button" aria-label="Switch color theme" id="theme">
-      <!-- Phosphor "moon" and "sun" (regular), MIT license, inlined -->
-      <svg class="moon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg>
-      <svg class="sun" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg>
-    </button>
+<header class="bar"><div class="wrap">
+  <a class="brand" href="index.html" aria-label="Forecast Lab home"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="9" width="24" height="8" rx="2" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.5"/><path d="M18 7.5 23.5 13 18 18.5 12.5 13Z" fill="var(--model)"/><rect x="5.5" y="5" width="3" height="16" rx="1" fill="var(--market)"/></svg><span>Forecast Lab</span></a>
+  <nav aria-label="Main">
+    <a class="l-home" href="index.html" aria-current="page"><span class="long">Home</span></a>
+    <a class="" href="log.html"><span class="long">Forecast log</span><span class="short">Log</span></a>
+    <a class="" href="week.html"><span class="long">This week</span><span class="short">Week</span></a>
+    <a class="" href="method.html">Method</a>
   </nav>
-</div>
-
-<main>
-  <p class="next" id="next"></p>
+  <button class="toggle" type="button" aria-label="Switch color theme" id="theme"><svg class="moon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg><svg class="sun" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg></button>
+</div></header>
+<main id="main"><div class="wrap">
+<div id="app">
+<section class="intro">
   <h1>NFL win probabilities, committed to GitHub before kickoff and scored against prediction markets.</h1>
   <p class="lede">Prediction markets such as Kalshi and Polymarket let people trade on game results, so a price of 80¢ reads as an 80% chance.</p>
-  <div class="actions">
-    <a class="btn primary" href="https://github.com/noah-olivieri/forecast-lab">GitHub repo</a>
-    <a class="btn quiet" href="method.html">How it works</a>
+  <div class="side">
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/noah-olivieri/forecast-lab">GitHub repo</a>
+      <a class="btn" href="method.html">How it works</a>
+    </div>
+    <p class="byline"><span>Built by <a href="https://github.com/noah-olivieri">Noah Olivieri</a></span><span class="paper">Paper trading, no real money</span></p>
   </div>
-  <p class="byline">
-    <span>Built by <a href="https://github.com/noah-olivieri">Noah Olivieri</a></span>
-    <span class="paper">Paper trading, no real money</span>
-  </p>
+</section>
 
-  <div id="app">
-    <section class="panel" aria-labelledby="feat">
-      <h2 id="feat">Loading the next game</h2>
-      <p class="panel-sub" id="hero-sub">&nbsp;</p>
-      <div class="plots" id="hero-plots"></div>
-      <div id="hero-gap"></div>
-      <div class="xgap" id="hero-cross" hidden></div>
-      <div class="howto" id="hero-howto" hidden></div>
-    </section>
-
-    <section class="status" aria-label="Where the project stands">
-      <div>
-        <h3>Forecasts logged</h3>
-        <p class="val num" id="st-logged">&nbsp;</p>
-        <p id="st-logged-note"></p>
-      </div>
-      <div class="rows">
-        <div>
-          <h3>Games settled</h3>
-          <p class="val pending">Not tracked yet</p>
-          <p>The settle job isn't built, so no game has a recorded result.</p>
-        </div>
-        <div>
-          <h3>Brier score vs market</h3>
-          <p class="val pending">Pending</p>
-          <p>Reported with an interval once ~50 games have settled.</p>
-        </div>
-      </div>
-    </section>
-
-    <p class="roadmap"><b>After the NFL:</b> US economic releases, such as CPI and jobs reports, once NFL scoring is working.</p>
+<section class="inst" id="inst" aria-labelledby="feat">
+  <div class="inst-head">
+    <div><h2 id="feat">Loading</h2><p class="sub" id="hero-sub">&nbsp;</p></div>
+    <div class="legend" id="legend" aria-hidden="true"></div>
   </div>
-</main>
+  <div id="hero-plots"></div>
+  <div class="notes" id="hero-notes"></div>
+</section>
 
-<footer>
+<section class="status" aria-label="Where the project stands">
+  <div class="st-row"><h3>Forecasts logged</h3><p class="val num" id="st-logged">&nbsp;</p><p id="st-logged-note"></p></div>
+  <div class="st-row"><h3>Games settled</h3><p class="val pending">Not tracked yet</p><p>The settle job isn't built, so no game has a recorded result.</p></div>
+  <div class="st-row"><h3>Brier score vs market</h3><p class="val pending">Pending</p><p>Reported with an interval once ~50 games have settled.</p></div>
+</section>
+<p class="roadmap"><b>After the NFL:</b> US economic releases, such as CPI and jobs reports, once NFL scoring is working.</p>
+
+</div>
+</div></main>
+<footer><div class="wrap">
   <span>Paper trading only. No real money is involved.</span>
   <span id="built"></span>
   <a href="https://github.com/noah-olivieri/forecast-lab">Source and data on GitHub</a>
-</footer>
-
+</div></footer>
 <script src="assets/site.js"></script>
 <script src="assets/strip.js"></script>
 <script src="assets/home.js"></script>
