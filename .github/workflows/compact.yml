@@ -1,0 +1,34 @@
+name: compact
+
+# Mondays 06:30 UTC: merge each finished ISO week of hourly files into one Parquet per venue,
+# verify row counts, delete the hourly files, push to `data`. Normal commit, never a force-push.
+on:
+  schedule:
+    - cron: "30 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: data-branch
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  compact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - id: wt
+        run: .github/scripts/data_worktree.sh require
+      - if: steps.wt.outputs.has_data == 'true'
+        uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - if: steps.wt.outputs.has_data == 'true'
+        run: uv sync --frozen --no-dev
+      - if: steps.wt.outputs.has_data == 'true'
+        run: uv run --no-sync python jobs/compact_weekly.py data-branch
+      - if: steps.wt.outputs.has_data == 'true'
+        run: .github/scripts/push_data.sh "compact weekly snapshots"

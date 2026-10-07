@@ -18,3 +18,5 @@ kalshi:
 snapshots:
   econ_offsets: ["7d", "1d", "1h"]
   nfl_offsets: ["24h", "1h"]
+collector:
+  venues: [kalshi]   # add polymarket_us when its snapshotter ships (M1)

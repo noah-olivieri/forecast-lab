@@ -1,0 +1,31 @@
+name: collect
+
+# Hourly market snapshots -> `data` branch. The cron is OFF until the snapshotter ships (M1);
+# until then this only runs by hand and will fail because jobs/snapshot_markets.py does not exist.
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "5 * * * *"   # enable at M1
+
+concurrency:
+  group: data-branch
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
+      - run: .github/scripts/data_worktree.sh create
+      - name: Snapshot markets
+        run: uv run --no-sync python jobs/snapshot_markets.py data-branch   # M1
+      - name: Commit snapshots
+        run: .github/scripts/push_data.sh "snapshots $(date -u +%Y-%m-%dT%H:%MZ)"

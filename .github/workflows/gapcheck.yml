@@ -1,0 +1,35 @@
+name: gapcheck
+
+# Fails (and so emails the repo owner) if the collector missed a recent hour.
+on:
+  schedule:
+    - cron: "20 * * * *"
+  workflow_dispatch:
+    inputs:
+      lookback:
+        description: "Hours to audit, or 'all' for the full history"
+        default: "3"
+
+concurrency:
+  group: gapcheck
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gapcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - id: wt
+        run: .github/scripts/data_worktree.sh require
+      - if: steps.wt.outputs.has_data == 'true'
+        uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - if: steps.wt.outputs.has_data == 'true'
+        run: uv sync --frozen --no-dev
+      - if: steps.wt.outputs.has_data == 'true'
+        run: uv run --no-sync python jobs/gapcheck.py data-branch --lookback "${{ inputs.lookback || '3' }}"
