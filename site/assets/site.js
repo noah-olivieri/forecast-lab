@@ -33,11 +33,29 @@
   Lab.stamp = function (d) { return dayF.format(d) + " " + dateF.format(d) + ", " + timeF.format(d) + " PT"; };
   Lab.dayLabel = function (d) { return dayF.format(d) + " " + dateF.format(d); };
   Lab.dayKey = function (d) { return dayKeyF.format(d); };
+  /* Whole-unit age of an instant, from UTC timestamps and real milliseconds: no time zone involved. */
   Lab.ago = function (from, now) {
     var h = (now - from) / 3600e3;
     if (h < 1) return Math.max(1, Math.round(h * 60)) + " min";
     if (h < 48) return Math.round(h) + " h";
     return Math.round(h / 24) + " days";
+  };
+  /* "Market prices as of Wed 10/7, 10:18 AM PT." plus a stale warning past 3 hours, judged on the
+     older venue. `snaps` is market.json's snapshots ({venue: UTC ISO time}); `now` is Date.now(). */
+  Lab.snapshotLine = function (snaps, now) {
+    snaps = snaps || {};
+    var k = snaps.kalshi ? new Date(snaps.kalshi) : null, p = snaps.polymarket_us ? new Date(snaps.polymarket_us) : null;
+    var t = function (d) { return '<time class="t" datetime="' + Lab.esc(d.toISOString()) + '">' + Lab.esc(Lab.stamp(d)) + "</time>"; };
+    if (!k && !p) return "No market snapshot was available when the site was built.";
+    var line;
+    if (k && p && Math.abs(k - p) > 60e3) line = "Kalshi as of " + t(k) + ", Polymarket as of " + t(p);
+    else {
+      line = "Market prices as of " + t(k || p);
+      if (!k || !p) line += " (" + (k ? "Polymarket" : "Kalshi") + " had no snapshot)";
+    }
+    var oldest = k && p ? Math.min(k, p) : (k || p);
+    return line + "." + (now - oldest > 3 * 3600e3
+      ? ' <span class="stale">That is ' + Lab.ago(oldest, now) + " old: prices refresh when the site rebuilds.</span>" : "");
   };
 
   /* --- theme ------------------------------------------------------------------------------ */

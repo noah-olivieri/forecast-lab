@@ -70,6 +70,8 @@
     <p>Every price is the home team's chance of winning. A bar spans a market's bid, the highest price a buyer is offering, and its ask, the lowest price a seller will take. The mid is halfway between them. Polymarket lists one side of each game, so when it quotes the away team the site flips it: the home price is 100¢ minus the away price.</p>
     <p>The gap on the home page compares the model with the market now. Scoring does not use that. It uses the bid and ask saved in the forecast file at lock time, from the same snapshot the model saw.</p>
 
+    <p><b>Cross-venue gap.</b> When one venue's bid is above the other's ask, the site shows the gap: buy at the lower ask, sell at the higher bid, and keep the difference in cents. It then takes off an estimated Kalshi taker fee, 0.07 × P × (1−P) per contract at price P, using the fee type and multiplier Kalshi's API reports for NFL games. Polymarket US's fee isn't counted and order sizes aren't checked, so a gap that looks positive may not be. A gap that is already negative stays negative. Paper only.</p>
+
     <h2>How forecasts will be scored</h2>
     <p>The main measure is the Brier score: the average squared gap between a forecast and what happened (1 for a win, 0 for a loss). Lower is better, and always saying 50% scores 0.25. The report will also show how much each forecast beats the home-rate baseline and the market, with bootstrap intervals, and compare model and market on the same games. It stays blank until about 50 games have settled, because a handful of games says almost nothing. Simulated trades, with fees, come later and would fill at the ask, never the mid.</p>
 

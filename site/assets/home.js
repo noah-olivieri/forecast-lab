@@ -19,24 +19,14 @@ Lab.boot(function (d, now) {
     title.textContent = Lab.team(g.away) + " at " + Lab.team(g.home);
 
     var s = Lab.stripInput(g, d.market, now);
-    var snaps = d.market.snapshots || {};
-    var kts = snaps.kalshi && new Date(snaps.kalshi), pts = snaps.polymarket_us && new Date(snaps.polymarket_us);
-    var stamp = "No market snapshot was available when the site was built.";
-    if (kts || pts) {
-      var main = kts || pts;
-      stamp = 'Market prices as of <time class="t" datetime="' + esc(main.toISOString()) + '">' + esc(Lab.stamp(main)) + "</time>";
-      if (kts && pts && Math.abs(kts - pts) > 60e3) {
-        stamp = 'Kalshi as of <time class="t" datetime="' + esc(kts.toISOString()) + '">' + esc(Lab.stamp(kts)) + "</time>, Polymarket as of " +
-                '<time class="t" datetime="' + esc(pts.toISOString()) + '">' + esc(Lab.stamp(pts)) + "</time>";
-      } else if (!kts || !pts) {
-        stamp += " (" + (kts ? "Polymarket" : "Kalshi") + " had no snapshot)";
-      }
-      if (now - main > 3 * 3600e3) stamp += '. <span class="stale">That is ' + Lab.ago(main, now) + ' old: prices update when the site is rebuilt.</span>';
-    }
-    sub.innerHTML = stamp;
+    sub.innerHTML = Lab.snapshotLine(d.market.snapshots, now);
 
     S.build(document.getElementById("hero-plots"), s);
     document.getElementById("hero-gap").innerHTML = S.gap(s);
+    var cross = Lab.crossNote(((d.market.games || {})[g.id] || {}).cross, s);
+    var xel = document.getElementById("hero-cross");
+    xel.innerHTML = cross ? "<p>" + cross + "</p>" : "";
+    xel.hidden = !cross;
 
     var parts = [];
     parts.push("<p><b>How to read it.</b> Each bar spans a market's bid (the highest price a buyer is offering) and ask (the lowest price a seller will take).");

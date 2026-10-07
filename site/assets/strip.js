@@ -153,6 +153,19 @@
     return '<div class="ruler">' + R.ticks + "</div>";
   }
 
+  /* The cross-venue note, from market.json's `cross` object (built in jobs/build_site.py). */
+  var signed = function (n) { return (n > 0 ? "+" : n < 0 ? "−" : "") + fmt1(Math.abs(n)); };
+  Lab.crossNote = function (c, s) {
+    if (!c) return "";
+    var name = function (v) { return v === "kalshi" ? "Kalshi" : "Polymarket"; };
+    var t = "<b>Cross-venue gap</b> " + fmt(c.gross) + "¢ gross: buy " + esc(s.home) + " on " + name(c.buy) + " at " + fmt(c.buy_price) +
+      "¢, sell it on " + name(c.sell) + " at " + fmt(c.sell_price) + "¢. ";
+    if (c.net == null) t += "Kalshi fee data was unavailable, so there is no net figure. ";
+    else if (!c.survives) t += "After est. fees (Kalshi " + fmt1(c.kalshi_fee) + "¢): " + signed(c.net) + "¢, so it doesn't survive. ";
+    else t += "After est. fees (Kalshi " + fmt1(c.kalshi_fee) + "¢): " + signed(c.net) + "¢. Polymarket US's fee isn't counted. ";
+    return t + "Paper only; order size not checked.";
+  };
+
   Lab.strip = { build: build, place: place, gap: gap, mini: mini, ticks100: ticks100, range: range, mid: mid, fmt: fmt, fmt1: fmt1, rng: rng };
 
   /* Shared by the home and week pages: what the model lane says before there is a model. */

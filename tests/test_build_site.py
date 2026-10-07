@@ -23,7 +23,9 @@ NOW = datetime(2026, 10, 7, 18, 0, tzinfo=UTC)
 GAMES = [
     {"game_id": "2026_05_TB_DAL", "away": "TB", "home": "DAL", "kickoff_utc": "2026-10-09T00:15:00Z"},
     {"game_id": "2026_05_PHI_JAX", "away": "PHI", "home": "JAX", "kickoff_utc": "2026-10-11T13:30:00Z"},
+    {"game_id": "2026_05_CHI_GB", "away": "CHI", "home": "GB", "kickoff_utc": "2026-10-11T17:00:00Z"},
 ]
+FEES = {"series": "KXNFLGAME", "fee_type": "quadratic_with_maker_fees", "fee_multiplier": 1.0}
 
 
 def sh(root: Path, *args: str) -> str:
@@ -87,10 +89,15 @@ def repo(tmp_path):
          "yes_bid": 0.0, "yes_ask": 1.0},
         {"venue": "kalshi", "market_ticker": "KXNFLSPREAD-26OCT08TBDAL-DAL3", "kind": "spread",
          "yes_bid": 0.5, "yes_ask": 0.51},
+        {"venue": "kalshi", "market_ticker": "KXNFLGAME-26OCT11CHIGB-GB", "subtitle": "Green Bay",
+         "yes_bid": 0.41, "yes_ask": 0.42},
     ])  # fmt: skip
     poly = snapshot_frame([
         {"venue": "polymarket_us", "market_ticker": "aec-nfl-tb-dal-2026-10-08",
          "subtitle": "Buccaneers", "yes_bid": 0.2025, "yes_ask": 0.205},
+        # Polymarket lists the away side (Bears 55-56c), so the home price is 44-45c: above Kalshi's ask.
+        {"venue": "polymarket_us", "market_ticker": "aec-nfl-chi-gb-2026-10-11",
+         "subtitle": "Bears", "yes_bid": 0.55, "yes_ask": 0.56},
     ])  # fmt: skip
     older = snapshot_frame([
         {"venue": "kalshi", "market_ticker": "KXNFLGAME-26OCT08TBDAL-DAL", "subtitle": "Dallas",
@@ -120,9 +127,9 @@ def repo(tmp_path):
     return root
 
 
-def run(root: Path, tmp_path: Path) -> dict:
+def run(root: Path, tmp_path: Path, fees=FEES) -> dict:
     out = tmp_path / "out"
-    bs.build(root, out, now=NOW)
+    bs.build(root, out, now=NOW, fees_fn=lambda: fees)  # never reaches the Kalshi API
     return {p.stem: json.loads(p.read_text()) for p in out.glob("*.json")}
 
 
@@ -155,7 +162,7 @@ def test_empty_book_has_no_bid_or_ask(repo, tmp_path):
 def test_no_data_branch_gives_empty_market(repo, tmp_path):
     sh(repo, "update-ref", "-d", "refs/remotes/origin/data")
     d = run(repo, tmp_path)
-    assert d["market"] == {"snapshots": {}, "games": {}}
+    assert d["market"]["snapshots"] == {} and d["market"]["games"] == {}
     assert d["meta"]["data_commit"] is None
 
 
@@ -270,7 +277,7 @@ def test_missing_origin_main_is_reported(repo, tmp_path):
 
 def test_games_carry_week_lock_time_and_sort_by_kickoff(repo, tmp_path):
     games = run(repo, tmp_path)["games"]
-    assert [g["id"] for g in games] == ["2026_05_TB_DAL", "2026_05_PHI_JAX"]
+    assert [g["id"] for g in games] == ["2026_05_TB_DAL", "2026_05_PHI_JAX", "2026_05_CHI_GB"]
     tb = games[0]
     assert tb["week"] == 5
     assert tb["lock_utc"] == "2026-10-08T00:15:00Z"  # 24h before kickoff
@@ -290,3 +297,112 @@ def test_build_never_writes_outside_the_output_dir(repo, tmp_path):
     run(repo, tmp_path)
     assert sh(repo, "status", "--porcelain") == before
     assert sorted(p.name for p in (repo / "forecasts").iterdir()) == [".gitkeep"]
+
+
+# --- cross-venue gap and Kalshi fees ---------------------------------------------------------
+
+RATE = bs.kalshi_taker_rate(FEES)
+
+
+def quote(k_bid, k_ask, p_bid, p_ask):
+    return {
+        "kalshi": {"ticker": "k", "bid": k_bid, "ask": k_ask},
+        "polymarket_us": {"ticker": "p", "bid": p_bid, "ask": p_ask, "flipped": False},
+    }
+
+
+def test_kalshi_fee_formula():
+    assert RATE == pytest.approx(0.07)
+    assert bs.kalshi_fee_cents(50, RATE) == pytest.approx(1.75)  # the schedule's 1.75c maximum
+    assert bs.kalshi_fee_cents(20, RATE) == pytest.approx(1.12)
+    assert bs.kalshi_taker_rate({**FEES, "fee_multiplier": 0.5}) == pytest.approx(0.035)
+    assert bs.kalshi_taker_rate({"fee_type": "flat", "fee_multiplier": 1}) is None
+    assert bs.kalshi_taker_rate(None) is None
+
+
+def test_overlapping_or_touching_ranges_have_no_gap():
+    assert bs.cross_gap(quote(79, 80, 79.5, 79.75), RATE) is None  # nested
+    assert bs.cross_gap(quote(79, 80, 78.5, 79.5), RATE) is None  # partial overlap
+    assert bs.cross_gap(quote(79, 80, 80, 81), RATE) is None  # kalshi ask == poly bid: gross 0
+
+
+def test_gap_poly_cheaper_sell_on_kalshi():
+    c = bs.cross_gap(quote(60, 61, 59.25, 59.5), RATE)
+    assert (c["buy"], c["buy_price"], c["sell"], c["sell_price"]) == ("polymarket_us", 59.5, "kalshi", 60)
+    assert c["gross"] == 0.5
+    assert c["kalshi_fee"] == pytest.approx(0.07 * 0.6 * 0.4 * 100, abs=1e-3)  # fee on the 60c leg
+    assert c["net"] == pytest.approx(0.5 - 1.68, abs=1e-3) and c["survives"] is False
+
+
+def test_gap_kalshi_cheaper_sell_on_poly_and_can_survive():
+    c = bs.cross_gap(quote(41, 42, 44, 45), RATE)
+    assert (c["buy"], c["sell"], c["gross"]) == ("kalshi", "polymarket_us", 2.0)
+    assert c["kalshi_fee"] == pytest.approx(0.07 * 0.42 * 0.58 * 100, abs=1e-3)  # fee on the 42c leg
+    assert c["net"] == pytest.approx(2.0 - 1.7052, abs=1e-3) and c["survives"] is True
+
+
+def test_gap_without_fee_data_has_no_net():
+    c = bs.cross_gap(quote(41, 42, 44, 45), None)
+    assert c["gross"] == 2.0 and c["kalshi_fee"] is None and c["net"] is None and c["survives"] is None
+
+
+def test_gap_needs_two_sided_quotes_on_both_venues():
+    assert bs.cross_gap(quote(None, 42, 44, 45), RATE) is None
+    assert bs.cross_gap(quote(41, 42, 44, None), RATE) is None
+    assert bs.cross_gap({"kalshi": {"bid": 41, "ask": 42}}, RATE) is None
+
+
+def test_build_writes_cross_gap_only_for_games_that_have_one(repo, tmp_path):
+    m = run(repo, tmp_path)["market"]
+    assert "cross" not in m["games"]["2026_05_TB_DAL"]  # nested ranges
+    c = m["games"]["2026_05_CHI_GB"]["cross"]
+    assert c["buy"] == "kalshi" and c["sell"] == "polymarket_us" and c["gross"] == 2.0
+    assert c["survives"] is True
+    assert m["fees"]["kalshi"]["taker_rate"] == pytest.approx(0.07)
+    assert m["fees"]["kalshi"]["fetched_utc"] == "2026-10-07T18:00:00Z"
+
+
+def test_build_without_fee_data_keeps_gross_and_reports_it(repo, tmp_path):
+    d = run(repo, tmp_path, fees=None)
+    c = d["market"]["games"]["2026_05_CHI_GB"]["cross"]
+    assert c["gross"] == 2.0 and c["net"] is None
+    assert d["market"]["fees"] == {"kalshi": None}
+    assert any("fee data unavailable" in p for p in d["meta"]["problems"])
+
+
+class FakeResponse:
+    def __init__(self, payload, status=200):
+        self.payload, self.status = payload, status
+
+    def raise_for_status(self):
+        if self.status >= 400:
+            raise bs.httpx.HTTPStatusError("bad", request=None, response=None)
+
+    def json(self):
+        return self.payload
+
+
+def test_fetch_kalshi_fees_reads_series_metadata(monkeypatch):
+    seen = {}
+
+    def fake_get(url, **kw):
+        seen["url"] = url
+        return FakeResponse({"series": {"fee_type": "quadratic_with_maker_fees", "fee_multiplier": 1}})
+
+    monkeypatch.setattr(bs.httpx, "get", fake_get)
+    assert bs.fetch_kalshi_fees() == FEES
+    assert seen["url"].endswith("/series/KXNFLGAME")
+
+
+@pytest.mark.parametrize(
+    "result",
+    [bs.httpx.ConnectError("down"), FakeResponse({}, status=500), FakeResponse({"series": {}})],
+)
+def test_fetch_kalshi_fees_fails_soft(monkeypatch, result):
+    def fake_get(url, **kw):
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    monkeypatch.setattr(bs.httpx, "get", fake_get)
+    assert bs.fetch_kalshi_fees() is None

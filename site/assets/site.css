@@ -266,6 +266,10 @@ h1 {
 
 .gapread { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hair); font-size: 15px; color: var(--ink-2); }
 .gapread .gv { font: 500 26px/1 var(--mono); color: var(--ink); letter-spacing: -.02em; }
+.xgap { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--hair); font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.xgap p { margin: 0; max-width: 62em; }
+.xgap b { color: var(--ink); font-weight: 600; }
+.game .xgap { grid-column: 1 / -1; margin: 0; padding-top: 10px; border-top: 1px dashed var(--hair); }
 .howto { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--hair); }
 .howto p { margin: 0; font-size: 14px; color: var(--ink-2); max-width: 62em; }
 .howto p + p { margin-top: 8px; }
