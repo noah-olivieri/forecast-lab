@@ -26,7 +26,7 @@ jobs:
       - id: wt
         run: .github/scripts/data_worktree.sh require
       - if: steps.wt.outputs.has_data == 'true'
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
       - if: steps.wt.outputs.has_data == 'true'
