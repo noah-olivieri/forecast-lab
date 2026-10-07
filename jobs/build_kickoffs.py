@@ -13,17 +13,12 @@ import json
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import nflreadpy
 
-ET = ZoneInfo("America/New_York")
+from lab.ingest.nflverse import to_kickoff_utc
+
 OUT = Path(__file__).resolve().parent.parent / "config" / "kickoffs.json"
-
-
-def to_kickoff_utc(gameday: str, gametime: str) -> str:
-    local = datetime.fromisoformat(f"{gameday}T{gametime}").replace(tzinfo=ET)
-    return local.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def build(rows: list[dict]) -> list[dict]:

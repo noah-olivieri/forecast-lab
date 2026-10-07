@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS nfl_game (
     kickoff_ts TIMESTAMP, away_team VARCHAR, home_team VARCHAR,
     away_score INTEGER, home_score INTEGER
 );
+-- 'Home' or 'Neutral' (nflverse `location`); neutral-site games get no home-field adjustment.
+ALTER TABLE nfl_game ADD COLUMN IF NOT EXISTS location VARCHAR;
 
 CREATE TABLE IF NOT EXISTS nfl_injury (
     game_id VARCHAR, team VARCHAR, player VARCHAR, status VARCHAR, fetched_ts TIMESTAMP NOT NULL
