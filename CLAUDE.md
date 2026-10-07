@@ -30,10 +30,19 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
 - M0 done: scaffold, config loader, DuckDB schema, Actions skeleton (gap-check, weekly compact).
 - **M1 done (2026-10-07):** Kalshi + Polymarket US snapshotter live. Manual `collect` runs
   succeeded twice and appended linear commits to `data`. Hourly cron (`5 * * * *`) is enabled.
-- Next: M2 (nflverse ingest, Elo, baselines, forecast logger, start NFL paper trading), then M3
+- **Thin M2 done (5b383cf):** nflverse ingest, `elo-538-default-v0` (untuned 538 Elo), flat
+  home-rate and market-mid baselines, and a forecast logger in `src/lab/forecasts.py` that refuses
+  `created_ts >= kickoff`, never overwrites a CSV, and refuses a dirty `src/`.
+- Kickoff windows come from `config/kickoffs.json` (`jobs/build_kickoffs.py`, refreshed weekly by
+  `kickoffs.yml`).
+- `collect.yml` is split into `gate` and `collect` jobs (only `collect` holds the `data-branch`
+  concurrency group), verified by a manual run on 10/6.
+- **Open issue:** the scheduled cron has not fired since going live on 10/6. Before every
+  forecast, run `gh workflow run collect.yml`, wait for it, then `git fetch origin data`.
+- Next: TB@DAL T-24h forecast Wed 10/7 at or after 5:15 PM PT, then forecast CLI, settle job, M3
   scoring/leakage tests, M4 ALFRED/BLS and Cleveland nowcast daily snapshot.
-- Not yet built: Cleveland Fed nowcast snapshot job, settle job, forecast logger, `created_ts <
-  event_close_ts` enforcement (DuckDB cannot check across tables; do it in logging code).
+- Not yet built: forecast CLI, Cleveland Fed nowcast snapshot job, settle job. The `created_ts <
+  event_close_ts` check lives in the logger, not the schema (DuckDB cannot check across tables).
 
 ## M1 decisions and caveats
 - Kalshi is the system of record; Polymarket US is a secondary cross-venue reference.
