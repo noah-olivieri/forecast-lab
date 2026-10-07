@@ -1,18 +1,23 @@
 name: collect
 
 # Market snapshots -> `data` branch.
-#  * Hourly at :05, always.
-#  * A `*/15` cron every day; jobs/in_window.py gates it. A run captures only if it is within 45
+#  * Hourly at :23, always.
+#  * A cron at :07,:22,:37,:52 every day; jobs/in_window.py gates it. A run captures only if it is within 45
 #    min before to 15 min after a kickoff in config/kickoffs.json (built from the real NFL
 #    schedule by jobs/build_kickoffs.py, refreshed weekly by kickoffs.yml). Gate-only runs
 #    finish in seconds and the repo is public, so they cost nothing. If the file is missing the
 #    gate falls back to fixed Thu/Sun/Mon Pacific-time windows. GitHub may start scheduled runs
 #    several minutes late; the gate allows 10 min of grace.
+#  * The minutes are deliberately odd: GitHub drops scheduled runs at busy minutes (:00, :05,
+#    :15 ...). It still dropped most runs overnight on 10/6-10/7, so an external caller (see
+#    CLAUDE.md) also fires workflow_dispatch, which always captures.
+#  * The cron strings below must equal HOURLY_CRON / WINDOW_CRON in jobs/in_window.py
+#    (tests/test_in_window.py checks this).
 on:
   workflow_dispatch:
   schedule:
-    - cron: "5 * * * *"
-    - cron: "*/15 * * * *"
+    - cron: "23 * * * *"
+    - cron: "7,22,37,52 * * * *"
 
 permissions:
   contents: write

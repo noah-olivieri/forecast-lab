@@ -1,4 +1,7 @@
-"""Fail (exit 1) if the collector missed any recent hour. Usage: gapcheck.py DATA_ROOT [--lookback N|all]"""
+"""Fail (exit 1) if the collector missed any recent hour. Usage: gapcheck.py DATA_ROOT [--lookback N|all]
+
+Any snapshot inside a UTC hour (hourly :23, window cron, or dispatch backup) covers that hour.
+"""
 
 import argparse
 import sys

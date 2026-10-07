@@ -1,9 +1,12 @@
 name: gapcheck
 
 # Fails (and so emails the repo owner) if the collector missed a recent hour.
+# It judges whole UTC hours that ended 15+ minutes ago. The collector's hourly run is at :23
+# and the external workflow_dispatch backup at :41, so either one covers its hour. This job is
+# itself a scheduled run, so GitHub can drop it too.
 on:
   schedule:
-    - cron: "20 * * * *"
+    - cron: "47 * * * *"
   workflow_dispatch:
     inputs:
       lookback:

@@ -149,5 +149,15 @@ def test_should_run_rules(tmp_path, monkeypatch):
     off = datetime(2026, 10, 14, 12, 0, tzinfo=UTC)  # Wednesday
     assert iw.should_run("workflow_dispatch", "", off)
     assert iw.should_run("schedule", iw.HOURLY_CRON, off)
-    assert not iw.should_run("schedule", "*/15 * * * *", off)
-    assert iw.should_run("schedule", "*/15 * * * *", pt(2026, 10, 11, 10, 0))
+    assert not iw.should_run("schedule", iw.WINDOW_CRON, off)
+    assert iw.should_run("schedule", iw.WINDOW_CRON, pt(2026, 10, 11, 10, 0))
+
+
+def test_workflow_crons_match_gate_constants():
+    """If collect.yml and the gate disagree, the hourly run is silently window-gated."""
+    import yaml
+
+    wf = yaml.safe_load((Path(__file__).parent.parent / ".github/workflows/collect.yml").read_text())
+    triggers = wf.get("on", wf.get(True))  # PyYAML parses a bare `on` key as True
+    crons = [s["cron"] for s in triggers["schedule"]]
+    assert crons == [iw.HOURLY_CRON, iw.WINDOW_CRON]

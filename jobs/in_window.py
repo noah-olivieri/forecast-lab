@@ -2,7 +2,7 @@
 
     in_window.py EVENT_NAME CRON_STRING     # writes run=true|false to $GITHUB_OUTPUT
 
-The extra 15-minute cron fires every 15 minutes and this gate decides: a run captures only if
+The extra WINDOW_CRON fires every 15 minutes (:07,:22,:37,:52) and this gate decides: a run captures only if
 it falls inside a window built from config/kickoffs.json (see build_kickoffs.py), from 45 min
 before to 15 min after any kickoff. If that file is missing or unreadable it falls back to the
 fixed Pacific-time WINDOWS below and warns. Manual runs and the plain hourly cron always capture.
@@ -18,7 +18,10 @@ from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-HOURLY_CRON = "5 * * * *"
+# Must match the two cron strings in .github/workflows/collect.yml (tests check this). An
+# unrecognised schedule string is treated as window-gated.
+HOURLY_CRON = "23 * * * *"
+WINDOW_CRON = "7,22,37,52 * * * *"
 PT = ZoneInfo("America/Los_Angeles")
 KICKOFFS_PATH = Path(__file__).resolve().parent.parent / "config" / "kickoffs.json"
 BEFORE = timedelta(minutes=45)

@@ -29,7 +29,7 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
 ## Status
 - M0 done: scaffold, config loader, DuckDB schema, Actions skeleton (gap-check, weekly compact).
 - **M1 done (2026-10-07):** Kalshi + Polymarket US snapshotter live. Manual `collect` runs
-  succeeded twice and appended linear commits to `data`. Hourly cron (`5 * * * *`) is enabled.
+  succeeded twice and appended linear commits to `data`. Hourly cron (`23 * * * *`) is enabled.
 - **Thin M2 done (5b383cf):** nflverse ingest, `elo-538-default-v0` (untuned 538 Elo), flat
   home-rate and market-mid baselines, and a forecast logger in `src/lab/forecasts.py` that refuses
   `created_ts >= kickoff`, never overwrites a CSV, and refuses a dirty `src/`.
@@ -37,8 +37,13 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   `kickoffs.yml`).
 - `collect.yml` is split into `gate` and `collect` jobs (only `collect` holds the `data-branch`
   concurrency group), verified by a manual run on 10/6.
-- **Open issue:** the scheduled cron has not fired since going live on 10/6. Before every
-  forecast, run `gh workflow run collect.yml`, wait for it, then `git fetch origin data`.
+- **Open issue:** GitHub's scheduler drops runs. Overnight 10/6-10/7 only 2 scheduled collect
+  runs fired (one real snapshot, 09:57Z) instead of about 11. Crons moved off busy minutes to
+  :23 and :07,:22,:37,:52 (unverified until the next overnight). Backup: an external caller fires
+  `workflow_dispatch` hourly at :41 (cron-job.org, fine-grained token, Actions read/write on this
+  repo only). **Not set up yet; the user creates the account and token.** Until it is confirmed,
+  before every forecast run `gh workflow run collect.yml`, wait for it, then
+  `git fetch origin data`.
 - Next: TB@DAL T-24h forecast Wed 10/7 at or after 5:15 PM PT, then forecast CLI, settle job, M3
   scoring/leakage tests, M4 ALFRED/BLS and Cleveland nowcast daily snapshot.
 - Not yet built: forecast CLI, Cleveland Fed nowcast snapshot job, settle job. The `created_ts <
@@ -61,7 +66,9 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
 - Kalshi displayed sizes can be absurd (10M+ contracts at the top of book). Cap before using for
   simulated fills.
 - Snapshot columns are venue-reported dollars for YES; a 0 bid with 0 size means an empty book.
-- Schedule: hourly :05 always, plus a `*/15 * * * *` cron every day that `jobs/in_window.py` gates.
+- Schedule: hourly :23 always, plus a `7,22,37,52 * * * *` cron every day that
+  `jobs/in_window.py` gates. The cron strings live in `collect.yml` and as `HOURLY_CRON` /
+  `WINDOW_CRON` in `in_window.py`; a test keeps them equal. Change both together.
   A gated run captures only from 45 min before to 15 min after a kickoff in `config/kickoffs.json`
   (10 min grace for late-starting runs), so international, Saturday, Friday and holiday games are
   covered. `jobs/build_kickoffs.py` builds that file from nflreadpy (nflverse ET gametime -> UTC);
@@ -69,5 +76,7 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   file -> fixed Thu/Sun/Mon Pacific windows plus a warning. The gate is stdlib-only (runs before
   `uv sync`).
 - Gap-check judges whole UTC hours, so an extra 15-minute run inside an hour counts as covering
-  that hour even if the :05 run failed. Accepted weakness.
+  that hour even if the :23 run failed. Accepted weakness. A `workflow_dispatch` backup run
+  covers its hour the same way, and adds a second snapshot to hours the cron also covered
+  (about 68 KiB more per hour).
 - Size: about 68 KiB per run (about 11 MB/week hourly) before weekly compaction.
