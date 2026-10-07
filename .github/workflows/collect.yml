@@ -1,11 +1,20 @@
 name: collect
 
-# Hourly market snapshots -> `data` branch. The snapshotter exists (M1) but the cron stays OFF
-# until the tracked-market list is approved; until then this only runs by hand.
+# Market snapshots -> `data` branch.
+#  * Hourly at :05, always.
+#  * Every 15 min on a broad UTC superset of the NFL kickoff windows; jobs/in_window.py then
+#    keeps only runs inside the real Pacific-time windows (Thu/Mon 4:30-5:30 PM; Sun 9:30-10:15
+#    AM, 12:45-1:30 PM, 4:45-5:30 PM). The superset covers both PDT and PST, so the Nov 1 DST
+#    change needs no edit. GitHub may start scheduled runs several minutes late.
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: "5 * * * *"   # enable at M1
+  schedule:
+    - cron: "5 * * * *"
+    - cron: "*/15 16-21,23 * * 0"   # Sunday windows (UTC)
+    - cron: "*/15 0-1,23 * * 1"     # Sunday-night spill into Monday UTC, and Monday night start
+    - cron: "*/15 0-1 * * 2"        # Monday-night spill into Tuesday UTC
+    - cron: "*/15 23 * * 4"         # Thursday night start
+    - cron: "*/15 0-1 * * 5"        # Thursday-night spill into Friday UTC
 
 concurrency:
   group: data-branch
@@ -20,12 +29,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.2.0
+      - id: gate
+        run: python3 jobs/in_window.py "${{ github.event_name }}" "${{ github.event.schedule }}"
+      - if: steps.gate.outputs.run == 'true'
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
-      - run: uv sync --frozen --no-dev
-      - run: .github/scripts/data_worktree.sh create
+      - if: steps.gate.outputs.run == 'true'
+        run: uv sync --frozen --no-dev
+      - if: steps.gate.outputs.run == 'true'
+        run: .github/scripts/data_worktree.sh create
       - name: Snapshot markets
+        if: steps.gate.outputs.run == 'true'
         run: uv run --no-sync python jobs/snapshot_markets.py data-branch
       - name: Commit snapshots
+        if: steps.gate.outputs.run == 'true'
         run: .github/scripts/push_data.sh "snapshots $(date -u +%Y-%m-%dT%H:%MZ)"
