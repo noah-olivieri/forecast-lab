@@ -52,10 +52,13 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
 - Kalshi displayed sizes can be absurd (10M+ contracts at the top of book). Cap before using for
   simulated fills.
 - Snapshot columns are venue-reported dollars for YES; a 0 bid with 0 size means an empty book.
-- Schedule: hourly :05 always, plus every 15 min inside Pacific-time kickoff windows (Thu/Mon
-  4:30-5:30 PM; Sun 9:30-10:15 AM, 12:45-1:30 PM, 4:45-5:30 PM). GitHub cron is UTC-only, so
-  `collect.yml` fires on a UTC superset and `jobs/in_window.py` gates on real
-  `America/Los_Angeles` time (DST-safe, 10 min grace for late-starting runs).
+- Schedule: hourly :05 always, plus a `*/15 * * * *` cron every day that `jobs/in_window.py` gates.
+  A gated run captures only from 45 min before to 15 min after a kickoff in `config/kickoffs.json`
+  (10 min grace for late-starting runs), so international, Saturday, Friday and holiday games are
+  covered. `jobs/build_kickoffs.py` builds that file from nflreadpy (nflverse ET gametime -> UTC);
+  `kickoffs.yml` reruns it Tuesdays and commits to `main` only if it changed. Missing/unreadable
+  file -> fixed Thu/Sun/Mon Pacific windows plus a warning. The gate is stdlib-only (runs before
+  `uv sync`).
 - Gap-check judges whole UTC hours, so an extra 15-minute run inside an hour counts as covering
   that hour even if the :05 run failed. Accepted weakness.
 - Size: about 68 KiB per run (about 11 MB/week hourly) before weekly compaction.

@@ -1,0 +1,36 @@
+name: kickoffs
+
+# Tuesdays 10:00 UTC: rebuild config/kickoffs.json from the NFL schedule and commit it to main
+# only if it changed (flex scheduling moves games). Normal commit, never a force-push.
+on:
+  schedule:
+    - cron: "0 10 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  kickoffs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
+      - run: uv run --no-sync python jobs/build_kickoffs.py
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- config/kickoffs.json; then
+            echo "kickoffs unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config/kickoffs.json
+          git commit -m "kickoffs: refresh from NFL schedule"
+          git push origin HEAD:main

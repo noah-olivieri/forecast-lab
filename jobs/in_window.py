@@ -2,22 +2,28 @@
 
     in_window.py EVENT_NAME CRON_STRING     # writes run=true|false to $GITHUB_OUTPUT
 
-GitHub cron is UTC-only, so the extra NFL kickoff-window runs fire on a broad UTC superset of
-days/hours and this gate checks real America/Los_Angeles time (correct across the Nov 1 DST
-change). Manual runs and the plain hourly cron always capture. Stdlib only: it runs before
-`uv sync`.
+The extra 15-minute cron fires every 15 minutes and this gate decides: a run captures only if
+it falls inside a window built from config/kickoffs.json (see build_kickoffs.py), from 45 min
+before to 15 min after any kickoff. If that file is missing or unreadable it falls back to the
+fixed Pacific-time WINDOWS below and warns. Manual runs and the plain hourly cron always capture.
+Stdlib only: it runs before `uv sync`.
 """
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from datetime import UTC, datetime, time, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 HOURLY_CRON = "5 * * * *"
 PT = ZoneInfo("America/Los_Angeles")
-# Python weekday(): Mon=0 ... Sun=6. Windows are inclusive, Pacific wall-clock.
+KICKOFFS_PATH = Path(__file__).resolve().parent.parent / "config" / "kickoffs.json"
+BEFORE = timedelta(minutes=45)
+AFTER = timedelta(minutes=15)
+# Fallback only. Python weekday(): Mon=0 ... Sun=6. Windows are inclusive, Pacific wall-clock.
 WINDOWS: dict[int, list[tuple[time, time]]] = {
     3: [(time(16, 30), time(17, 30))],  # Thursday night game
     6: [  # Sunday: early, late-early, and late slots
@@ -32,7 +38,21 @@ WINDOWS: dict[int, list[tuple[time, time]]] = {
 GRACE = timedelta(minutes=10)
 
 
-def in_kickoff_window(now_utc: datetime) -> bool:
+def load_kickoffs(path: Path) -> list[datetime] | None:
+    """Kickoff times (aware UTC) from the JSON file, or None if missing/unreadable/empty."""
+    try:
+        games = json.loads(path.read_text())
+        kickoffs = [datetime.fromisoformat(g["kickoff_utc"]).astimezone(UTC) for g in games]
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        print(f"warning: cannot use {path} ({e!r}); falling back to fixed windows", file=sys.stderr)
+        return None
+    if not kickoffs:
+        print(f"warning: {path} has no games; falling back to fixed windows", file=sys.stderr)
+        return None
+    return kickoffs
+
+
+def _in_fixed_windows(now_utc: datetime) -> bool:
     local = now_utc.astimezone(PT)
     for start, end in WINDOWS.get(local.weekday(), []):
         s = datetime.combine(local.date(), start, tzinfo=PT)
@@ -40,6 +60,13 @@ def in_kickoff_window(now_utc: datetime) -> bool:
         if s <= local <= e:
             return True
     return False
+
+
+def in_kickoff_window(now_utc: datetime, path: Path | None = None) -> bool:
+    kickoffs = load_kickoffs(path or KICKOFFS_PATH)
+    if kickoffs is None:
+        return _in_fixed_windows(now_utc)
+    return any(k - BEFORE <= now_utc <= k + AFTER + GRACE for k in kickoffs)
 
 
 def should_run(event_name: str, cron: str, now_utc: datetime) -> bool:
