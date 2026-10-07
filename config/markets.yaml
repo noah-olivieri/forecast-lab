@@ -18,5 +18,8 @@ kalshi:
 snapshots:
   econ_offsets: ["7d", "1d", "1h"]
   nfl_offsets: ["24h", "1h"]
+polymarket_us:
+  # NFL: full-game winner/spread/total only. Econ: `macro` events whose title matches this regex.
+  econ_title_regex: '\b(CPI|Fed Decision|GDP Growth in Q\d|Jobs|Payrolls?|Unemployment|Jobless)\b'
 collector:
-  venues: [kalshi]   # add polymarket_us when its snapshotter ships (M1)
+  venues: [kalshi, polymarket_us]   # the hourly cron itself is still off (collect.yml)

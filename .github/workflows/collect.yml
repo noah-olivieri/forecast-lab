@@ -1,7 +1,7 @@
 name: collect
 
-# Hourly market snapshots -> `data` branch. The cron is OFF until the snapshotter ships (M1);
-# until then this only runs by hand and will fail because jobs/snapshot_markets.py does not exist.
+# Hourly market snapshots -> `data` branch. The snapshotter exists (M1) but the cron stays OFF
+# until the tracked-market list is approved; until then this only runs by hand.
 on:
   workflow_dispatch:
   # schedule:
@@ -26,6 +26,6 @@ jobs:
       - run: uv sync --frozen --no-dev
       - run: .github/scripts/data_worktree.sh create
       - name: Snapshot markets
-        run: uv run --no-sync python jobs/snapshot_markets.py data-branch   # M1
+        run: uv run --no-sync python jobs/snapshot_markets.py data-branch
       - name: Commit snapshots
         run: .github/scripts/push_data.sh "snapshots $(date -u +%Y-%m-%dT%H:%MZ)"
