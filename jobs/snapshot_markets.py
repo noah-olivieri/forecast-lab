@@ -67,7 +67,12 @@ def dry_run_report(rows: list[dict], ts: datetime, n_games: int = 5) -> str:
     lines.append(f"{'total':28} {len(rows):>7}")
     games = {}
     for r in rows:
-        if r["venue"] == "polymarket_us" and r["group"] == "nfl" and r["event_time"] >= ts:
+        if (
+            r["venue"] == "polymarket_us"
+            and r["group"] == "nfl"
+            and r["event_time"]
+            and r["event_time"] >= ts
+        ):
             games[r["event_ticker"]] = r["event_time"]
     lines.append("\nnearest NFL games (kickoff UTC, Polymarket markets per game):")
     for slug, t in sorted(games.items(), key=lambda kv: kv[1])[:n_games]:
