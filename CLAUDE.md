@@ -18,6 +18,12 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
 - Leakage rules (PLAN.md 7): every feature function takes `as_of`; ALFRED vintages only; the
   market price compared to a forecast comes from the same snapshot.
 - `main` is protected against force-push and deletion (ruleset, no bypass). Never force-push.
+- **One exception to "ask before pushing":** the `forecast` workflow (github-actions[bot],
+  `.github/scripts/push_forecasts.sh`) may push NEW files under `forecasts/` to `main` without
+  asking. It never modifies or deletes one (`ci.yml` fails any commit that does). Every other
+  push, including all code, workflow and config changes, still needs the user's approval.
+- The pre-registered rule lives in `RESEARCH_PROTOCOL.md`. Never edit anything above its
+  "Changes" section; amendments are new dated sections under "Changes".
 
 ## Layout
 - `main`: code, config, `forecasts/`. `data` branch (orphan): `snapshots/hourly|weekly/*.parquet`
@@ -28,26 +34,35 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
 
 ## Status
 - M0 done: scaffold, config loader, DuckDB schema, Actions skeleton (gap-check, weekly compact).
-- **M1 done (2026-10-07):** Kalshi + Polymarket US snapshotter live. Manual `collect` runs
-  succeeded twice and appended linear commits to `data`. Hourly cron (`23 * * * *`) is enabled.
-- **Thin M2 done (5b383cf):** nflverse ingest, `elo-538-default-v0` (untuned 538 Elo), flat
-  home-rate and market-mid baselines, and a forecast logger in `src/lab/forecasts.py` that refuses
-  `created_ts >= kickoff`, never overwrites a CSV, and refuses a dirty `src/`.
-- Kickoff windows come from `config/kickoffs.json` (`jobs/build_kickoffs.py`, refreshed weekly by
-  `kickoffs.yml`).
-- `collect.yml` is split into `gate` and `collect` jobs (only `collect` holds the `data-branch`
-  concurrency group), verified by a manual run on 10/6.
-- **Open issue:** GitHub's scheduler drops runs. Overnight 10/6-10/7 only 2 scheduled collect
-  runs fired (one real snapshot, 09:57Z) instead of about 11. Crons moved off busy minutes to
-  :23 and :07,:22,:37,:52 (unverified until the next overnight). Backup: an external caller fires
-  `workflow_dispatch` hourly at :41 (cron-job.org, fine-grained token, Actions read/write on this
-  repo only). **Not set up yet; the user creates the account and token.** Until it is confirmed,
-  before every forecast run `gh workflow run collect.yml`, wait for it, then
-  `git fetch origin data`.
-- Next: TB@DAL T-24h forecast Wed 10/7 at or after 5:15 PM PT, then forecast CLI, settle job, M3
-  scoring/leakage tests, M4 ALFRED/BLS and Cleveland nowcast daily snapshot.
-- Not yet built: forecast CLI, Cleveland Fed nowcast snapshot job, settle job. The `created_ts <
-  event_close_ts` check lives in the logger, not the schema (DuckDB cannot check across tables).
+- **M1 done (2026-10-07):** Kalshi + Polymarket US snapshotter live. Hourly cron (`23 * * * *`)
+  is enabled; `collect.yml` is split into `gate` and `collect` jobs.
+- **Thin M2 done:** nflverse ingest, `elo-538-default-v0` (untuned 538 Elo), flat home-rate and
+  market-mid baselines, and the forecast logger in `src/lab/forecasts.py` (refuses
+  `created_ts >= kickoff`, never overwrites a CSV, refuses a dirty `src/`). Per-game isolation,
+  provenance columns and `inputs_stale` landed in cbe3677 (a golden test pins the v0 models).
+- **Done on `main`:** TB@DAL T-24h pilot forecast (`forecasts/2026-10-08/`, manual, horizon
+  24h07m), portfolio site launch (88a93c4), `RESEARCH_PROTOCOL.md` pre-registered (358618f).
+- **Phase A in progress: automate the T-24h forecast for every NFL game.** Built on branch
+  `forecast-auto`, NOT yet merged or pushed: `jobs/forecast_t24.py` (`gate` + `run`),
+  `forecast.yml` (cron `11,26,41,56 * * * *`), `ci.yml` (pytest, ruff, forecasts/ append-only
+  guard), daily `kickoffs.yml` (`17 10 * * *`), `.github/scripts/push_forecasts.sh`.
+  Window per game is [K-24h, K-21h); the first successful run makes the forecast; a game with
+  none is MISSED (alert covers windows closed in the last 6h; scoring counts misses from
+  `kickoffs.json`). A Kalshi snapshot older than 30 min fails that game's run (retried next run).
+  `GO_LIVE` (one constant in `jobs/forecast_t24.py`) is 2026-10-09T00:15Z, the TB@DAL kickoff;
+  games with kickoff >= GO_LIVE + 24h are eligible. Nothing runs on a schedule until
+  `forecast.yml` is on `main`.
+- **Open issue:** GitHub's scheduler drops runs. Crons were moved off busy minutes (unverified
+  until an overnight). Backup: an external caller should fire `workflow_dispatch` for BOTH
+  `collect.yml` and `forecast.yml` (hourly at :41 for collect; cron-job.org, fine-grained token,
+  Actions read/write on this repo only). **Not set up yet; the user creates the account and
+  token.** Until confirmed, before a manual forecast run `gh workflow run collect.yml`, wait for
+  it, then `git fetch origin data`.
+- Next (revised roadmap, see RESEARCH_PROTOCOL.md): merge Phase A; Phase B minimal
+  auto-settlement (ordinary games settle automatically, odd cases flagged); Phase C/D scoring
+  (Brier primary, log loss secondary) on a labeled historical backtest plus the live sample;
+  Phase E encompassing test vs market; then feature research for nfl-feature-v1. Parked:
+  econ/M4, sportsbook ingestion, spreads, multi-sport, paper trading, site polish.
 
 ## M1 decisions and caveats
 - Kalshi is the system of record; Polymarket US is a secondary cross-venue reference.

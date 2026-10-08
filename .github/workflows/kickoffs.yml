@@ -1,10 +1,10 @@
 name: kickoffs
 
-# Tuesdays 10:00 UTC: rebuild config/kickoffs.json from the NFL schedule and commit it to main
+# Daily 10:17 UTC: rebuild config/kickoffs.json from the NFL schedule and commit it to main
 # only if it changed (flex scheduling moves games). Normal commit, never a force-push.
 on:
   schedule:
-    - cron: "0 10 * * 2"
+    - cron: "17 10 * * *"
   workflow_dispatch:
 
 permissions:

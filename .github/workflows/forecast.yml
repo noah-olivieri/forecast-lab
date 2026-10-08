@@ -1,0 +1,92 @@
+name: forecast
+
+# Automated T-24h NFL forecasts, the rule pre-registered in RESEARCH_PROTOCOL.md.
+#  * Window per game: [kickoff - 24h, kickoff - 21h). The first successful run inside it makes
+#    the forecast; a game with none is MISSED. jobs/forecast_t24.py holds the rule and the
+#    GO_LIVE constant. Nobody selects games: workflow_dispatch has no inputs, and `run`
+#    re-derives the rule and refuses any game that is not open.
+#  * The minutes (:11,:26,:41,:56) are odd on purpose (GitHub drops runs at busy minutes) and
+#    give about 12 attempts per window. They must equal FORECAST_CRON in forecast_t24.py
+#    (tests/test_forecast_workflows.py checks this).
+#  * Three jobs: `gate` always succeeds when it works (exit 1 = missed game is recorded as an
+#    output); `forecast` runs only when the gate found open games; `alert` fails the run when a
+#    game was missed, so GitHub emails. The forecast job is deliberately NOT in the
+#    data-branch concurrency group (a queued run there would cancel a pending collect run);
+#    push_data.sh retries races on its own.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "11,26,41,56 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: forecast
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      game_ids: ${{ steps.gate.outputs.game_ids }}
+      missed: ${{ steps.gate.outputs.missed }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - id: gate
+        # Exit 1 means "a game was missed" (already in the outputs); anything else is a crash.
+        run: python3 jobs/forecast_t24.py gate || [ $? -eq 1 ]
+
+  alert:
+    needs: gate
+    if: needs.gate.outputs.missed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: |
+          echo "::error::an eligible game missed its T-24h forecast window (see the gate job)"
+          exit 1
+
+  forecast:
+    needs: gate
+    if: needs.gate.outputs.game_ids != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
+      - run: .github/scripts/data_worktree.sh create
+      # A failed capture is not fatal: the 30-minute snapshot-age rule decides whether the
+      # newest saved snapshot is still good enough.
+      - name: Fresh market snapshot
+        continue-on-error: true
+        run: uv run --no-sync python jobs/snapshot_markets.py data-branch
+      - name: Save snapshot to data branch
+        continue-on-error: true
+        run: .github/scripts/push_data.sh "snapshots forecast $(date -u +%Y-%m-%dT%H:%MZ)"
+      - name: Forecast
+        id: forecast
+        continue-on-error: true
+        env:
+          GAME_IDS: ${{ needs.gate.outputs.game_ids }}
+        run: uv run --no-sync python jobs/forecast_t24.py run --game-ids "$GAME_IDS"
+      - name: Commit and push new forecast files
+        if: steps.forecast.outputs.files != ''
+        env:
+          FILES: ${{ steps.forecast.outputs.files }}
+        run: |
+          IFS=, read -r -a paths <<< "$FILES"
+          .github/scripts/push_forecasts.sh "${paths[@]}"
+      - name: Fail if any game failed
+        if: steps.forecast.outcome == 'failure'
+        run: |
+          echo "::error::at least one game failed; the next run retries while its window is open"
+          exit 1
