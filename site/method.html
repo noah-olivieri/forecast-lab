@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Method - Forecast Lab</title>
+<meta name="description" content="How Forecast Lab makes, timestamps and scores NFL forecasts, and what the evidence does and does not prove.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+  document.documentElement.classList.add("js");
+  try {
+    var t = localStorage.getItem("theme");
+    if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.dataset.theme = t;
+  } catch (e) {}
+  var q = new URLSearchParams(location.search).get("theme");
+  if (q === "light" || q === "dark") document.documentElement.dataset.theme = q;
+</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="ticker" id="ticker"></div>
+<header class="bar"><div class="wrap">
+  <a class="brand" href="index.html" aria-label="Forecast Lab home"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="9" width="24" height="8" rx="2" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.5"/><path d="M18 7.5 23.5 13 18 18.5 12.5 13Z" fill="var(--model)"/><rect x="5.5" y="5" width="3" height="16" rx="1" fill="var(--market)"/></svg><span>Forecast Lab</span></a>
+  <nav aria-label="Main">
+    <a class="l-home" href="index.html"><span class="long">Home</span></a>
+    <a class="" href="log.html"><span class="long">Forecast log</span><span class="short">Log</span></a>
+    <a class="" href="week.html"><span class="long">This week</span><span class="short">Week</span></a>
+    <a class="" href="method.html" aria-current="page">Method</a>
+  </nav>
+  <button class="toggle" type="button" aria-label="Switch color theme" id="theme"><svg class="moon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg><svg class="sun" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg></button>
+</div></header>
+<main id="main"><div class="wrap">
+  <div class="head">
+    <h1>Method</h1>
+    <p class="lede">What gets forecast, when a forecast is locked, and what the record can and cannot prove.</p>
+  </div>
+  <div class="prose" id="app">
+    <h2>What this tracks</h2>
+    <p>Win probabilities for NFL games, compared with the prices on two prediction markets, Kalshi and Polymarket US. A market price in cents reads as a probability: 80¢ is an 80% chance. Everything here is paper trading. No account holds money and no order is placed.</p>
+
+    <h2>How a forecast is made</h2>
+    <ol class="steps">
+      <li><b>Prices are saved.</b> A collector stores market prices every hour, and every 15 minutes around kickoffs, on a separate <code>data</code> branch.</li>
+      <li><b>The models run 24 hours before kickoff.</b> Each reads the newest saved prices and works out the home team's chance of winning using only games that finished before that moment.</li>
+      <li><b>The result goes to GitHub before the game.</b> One CSV is committed and pushed to <code>main</code>. The logger refuses to write a file if its creation time is not before kickoff, and it never overwrites an earlier file. GitHub's record of when it received the push is the receipt.</li>
+      <li><b>After the game, it gets scored.</b> A settle job will record the result and score each forecast against the market price saved in its file. That job isn't built yet.</li>
+    </ol>
+
+    <h2>The three forecasts</h2>
+    <p><b>Elo baseline (v0, untuned).</b> FiveThirtyEight's published NFL Elo settings, used as they are: K of 20, a home-field edge worth 65 rating points, a margin-of-victory adjustment, and a third of each rating's distance from the mean given back between seasons. Ratings are replayed from games that kicked off more than 4 hours before the forecast time.</p>
+    <p><b>Home rate.</b> The share of past games the home team won, the same for every game. Neutral-site games get 50%.</p>
+    <p><b>Market mid.</b> The market's own price, halfway between bid and ask. This is the baseline to beat: a model only adds something if it knows what the market doesn't.</p>
+
+    <h2>Reading the strip</h2>
+    <p>Every price is the home team's chance of winning. A bar spans a market's bid, the highest price a buyer is offering, and its ask, the lowest price a seller will take. The mid is halfway between them. Polymarket lists one side of each game, so when it quotes the away team the site flips it: the home price is 100¢ minus the away price.</p>
+    <p>The gap on the home page compares the model with the market now. Scoring does not use that. It uses the bid and ask saved in the forecast file at lock time, from the same snapshot the model saw.</p>
+  </div>
+  <figure class="fig" id="method-fig"></figure>
+  <div class="prose">
+
+    <p><b>Cross-venue gap.</b> When one venue's bid is above the other's ask, the site shows the gap: buy at the lower ask, sell at the higher bid, and keep the difference in cents. It then takes off an estimated Kalshi taker fee, 0.07 × P × (1−P) per contract at price P, using the fee type and multiplier Kalshi's API reports for NFL games. Polymarket US's fee isn't counted and order sizes aren't checked, so a gap that looks positive may not be. A gap that is already negative stays negative. Paper only.</p>
+
+    <h2>How forecasts will be scored</h2>
+    <p>The main measure is the Brier score: the average squared gap between a forecast and what happened (1 for a win, 0 for a loss). Lower is better, and always saying 50% scores 0.25. The report will also show how much each forecast beats the home-rate baseline and the market, with bootstrap intervals, and compare model and market on the same games. It stays blank until about 50 games have settled, because a handful of games says almost nothing. Simulated trades, with fees, come later and would fill at the ask, never the mid.</p>
+
+    <h2>What the record doesn't prove</h2>
+    <dl class="limits">
+      <dt>Commit dates can be set by the committer.</dt>
+      <dd>That is why the receipt is the time GitHub received the push, not the date in the commit. <code>main</code> blocks force-pushes, so a pushed forecast can't be quietly rewritten.</dd>
+      <dt>Snapshots can be late.</dt>
+      <dd>GitHub's scheduled runs sometimes start late or get skipped. Every forecast row records the snapshot time it used, so a stale price shows up in the file.</dd>
+      <dt>Polymarket quotes can lag.</dt>
+      <dd>Its feed gives no order sizes, and a quote can trail Kalshi's. Kalshi is the system of record and Polymarket is a second reference.</dd>
+      <dt>Few games to learn from.</dt>
+      <dd>One season is about 270 games. A market that pools many bettors is a hard baseline, so a model losing to it would not be a surprise.</dd>
+    </dl>
+
+    <h2>Where to look</h2>
+    <p>The code, the committed forecasts and the full design notes are in the <a href="https://github.com/noah-olivieri/forecast-lab">GitHub repo</a>. The <a href="log.html">forecast log</a> links each forecast to its commit.</p>
+  </div>
+</div></main>
+<footer><div class="wrap">
+  <span>Paper trading only. No real money is involved.</span>
+  <span id="built"></span>
+  <a href="https://github.com/noah-olivieri/forecast-lab">Source and data on GitHub</a>
+</div></footer>
+<script src="assets/site.js"></script>
+<script src="assets/strip.js"></script>
+<script src="assets/method.js"></script>
+</body>
+</html>

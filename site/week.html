@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>This week - Forecast Lab</title>
+<meta name="description" content="Every game this NFL week with the Kalshi and Polymarket prices from the newest snapshot and the model forecast when one is logged.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+  document.documentElement.classList.add("js");
+  try {
+    var t = localStorage.getItem("theme");
+    if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.dataset.theme = t;
+  } catch (e) {}
+  var q = new URLSearchParams(location.search).get("theme");
+  if (q === "light" || q === "dark") document.documentElement.dataset.theme = q;
+</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="ticker" id="ticker"></div>
+<header class="bar"><div class="wrap">
+  <a class="brand" href="index.html" aria-label="Forecast Lab home"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="9" width="24" height="8" rx="2" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.5"/><path d="M18 7.5 23.5 13 18 18.5 12.5 13Z" fill="var(--model)"/><rect x="5.5" y="5" width="3" height="16" rx="1" fill="var(--market)"/></svg><span>Forecast Lab</span></a>
+  <nav aria-label="Main">
+    <a class="l-home" href="index.html"><span class="long">Home</span></a>
+    <a class="" href="log.html"><span class="long">Forecast log</span><span class="short">Log</span></a>
+    <a class="" href="week.html" aria-current="page"><span class="long">This week</span><span class="short">Week</span></a>
+    <a class="" href="method.html">Method</a>
+  </nav>
+  <button class="toggle" type="button" aria-label="Switch color theme" id="theme"><svg class="moon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg><svg class="sun" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg></button>
+</div></header>
+<main id="main"><div class="wrap">
+<div id="app">
+<div class="head">
+  <h1 id="week-h">This week</h1>
+  <p class="lede">Kalshi and Polymarket prices for every game this week, with the model once its forecast is logged.</p>
+</div>
+<section class="wk" aria-labelledby="wk-panel">
+  <div class="wk-head"><h2 id="wk-panel">Home team win probability</h2><p id="wk-sub">&nbsp;</p></div>
+  <div class="legend" id="wk-legend" aria-hidden="true"></div>
+  <div class="led led-h" aria-hidden="true">
+    <div>Day</div><div>Game</div><div class="plot" id="wk-axis"></div>
+    <div class="r mcol k-model">Model</div><div class="r">Kalshi</div><div class="r">Polymarket</div>
+  </div>
+  <div id="wk-body"></div>
+</section>
+
+</div>
+</div></main>
+<footer><div class="wrap">
+  <span>Paper trading only. No real money is involved.</span>
+  <span id="built"></span>
+  <a href="https://github.com/noah-olivieri/forecast-lab">Source and data on GitHub</a>
+</div></footer>
+<script src="assets/site.js"></script>
+<script src="assets/strip.js"></script>
+<script src="assets/week.js"></script>
+</body>
+</html>
