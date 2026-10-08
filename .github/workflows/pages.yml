@@ -36,7 +36,9 @@ jobs:
           enable-cache: true
       - run: uv sync --frozen --no-dev
       - name: Show the refs the build reads
-        run: git rev-parse --short origin/main origin/data
+        run: |
+          git rev-parse --short origin/main
+          git rev-parse --short origin/data
       - run: uv run --no-sync python jobs/build_site.py
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
