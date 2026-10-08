@@ -15,6 +15,7 @@ from __future__ import annotations
 import csv
 import json
 import subprocess
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from lab.config import CONFIG_DIR, ROOT
 from lab.features import nfl as nfl_features
 from lab.ingest.nflverse import ET
 from lab.models.baselines import market_mid
+from lab.store.asof import to_naive_utc
 from lab.store.snapshots import list_hourly
 
 MODEL_ELO = ("elo", "elo-538-default-v0")
@@ -37,6 +39,7 @@ COLUMNS = [
     "model", "model_version", "git_sha", "venue", "market_ticker", "game_id", "yes_team",
     "prices_flipped", "as_of_ts", "p_yes", "created_ts", "kickoff_ts",
     "market_yes_bid", "market_yes_ask", "snapshot_ts",
+    "horizon", "run_id", "run_attempt", "inputs_stale",
 ]  # fmt: skip
 
 # Kalshi uses JAC/LAR where nflverse uses JAX/LA.
@@ -54,6 +57,12 @@ NICKNAMES = {
 
 class ForecastError(ValueError):
     pass
+
+
+@dataclass(frozen=True)
+class GameFailure:
+    game_id: str
+    reason: str
 
 
 class ForecastTooLate(ForecastError):
@@ -140,60 +149,102 @@ def build_rows(
     created_ts: datetime,
     git_sha: str,
     kickoffs: dict[str, datetime],
-) -> tuple[list[dict], list[str]]:
-    """Rows for the home-team market of each game on each venue, plus warnings.
+    *,
+    horizon: str = "t24",
+    run_id: str = "",
+    run_attempt: str = "",
+) -> tuple[list[dict], list[str], list[GameFailure]]:
+    """Return rows, warnings, and per-game failures; timing violations still raise.
 
-    `as_of` is an upper bound; each row's as_of_ts is the Kalshi snapshot's capture time, and
-    the Polymarket quote must come from within SNAPSHOT_TOLERANCE of it (else it is skipped).
+    Each game's rows are atomic: a failed game contributes no rows. `as_of` is an
+    upper bound; features use the Kalshi capture time and Polymarket must be within
+    SNAPSHOT_TOLERANCE. Missing Polymarket quotes only produce a warning.
     """
-    rows: list[dict] = []
-    warnings: list[str] = []
+    rows, warnings, failures = [], [], []
     kalshi_df = _latest_snapshot(data_root, KALSHI, as_of)
     for game_id in game_ids:
-        g = con.execute(
-            "SELECT season, home_team, away_team, location FROM nfl_game WHERE game_id = ?",
-            [game_id],
-        ).fetchone()
-        if g is None or game_id not in kickoffs:
-            raise ForecastError(f"{game_id}: not in nfl_game and kickoffs.json")
-        season, home, away, location = g
-        kickoff = kickoffs[game_id]
-        k_ticker, p_ticker = _tickers(away, home, kickoff.astimezone(ET))
-
-        k_row = _quote_row(kalshi_df, k_ticker)
-        if k_row is None:
-            raise ForecastError(f"{game_id}: Kalshi market {k_ticker} not in snapshot")
-        as_of_ts = k_row["ts_utc"]
-        check_timing(created_ts, as_of_ts, kickoff)
-
-        quotes = [(KALSHI, k_ticker, k_row, False)]
-        p_cutoff = min(as_of_ts + SNAPSHOT_TOLERANCE, as_of)
-        p_row = _quote_row(_latest_snapshot(data_root, POLYMARKET, p_cutoff), p_ticker)
-        if p_row is None or abs(p_row["ts_utc"] - as_of_ts) > SNAPSHOT_TOLERANCE:
-            warnings.append(f"{game_id}: no Polymarket US quote within {SNAPSHOT_TOLERANCE}")
+        if game_id in kickoffs:
+            check_timing(created_ts, created_ts, kickoffs[game_id])
+        try:
+            game_rows, game_warnings = _build_game_rows(
+                con, data_root, game_id, as_of, created_ts, git_sha, kickoffs, kalshi_df
+            )
+        except ForecastTooLate:
+            raise
+        except ForecastError as exc:
+            failures.append(GameFailure(game_id, str(exc)))
         else:
-            yes_team = NICKNAMES.get(p_row["subtitle"])
-            if yes_team not in (home, away):
-                raise ForecastError(f"{p_ticker}: cannot map YES side {p_row['subtitle']!r}")
-            quotes.append((POLYMARKET, p_ticker, p_row, yes_team == away))
+            for row in game_rows:
+                row.update(horizon=horizon, run_id=run_id, run_attempt=run_attempt)
+            rows.extend(game_rows)
+            warnings.extend(game_warnings)
+    return rows, warnings, failures
 
-        neutral = location == "Neutral"
-        p_elo = nfl_features.win_prob(con, home, away, as_of_ts, season, neutral)
-        p_home = nfl_features.home_rate_baseline(con, as_of_ts, neutral)
-        for venue, ticker, q, flipped in quotes:
-            bid, ask = q["yes_bid"], q["yes_ask"]
-            if flipped:
-                bid, ask = flip_quote(bid, ask)
-            base = {
-                "git_sha": git_sha, "venue": venue, "market_ticker": ticker, "game_id": game_id,
-                "yes_team": home, "prices_flipped": flipped, "as_of_ts": as_of_ts,
-                "created_ts": created_ts, "kickoff_ts": kickoff, "market_yes_bid": bid,
-                "market_yes_ask": ask, "snapshot_ts": q["ts_utc"],
-            }  # fmt: skip
-            mid = market_mid(bid, ask)
-            for (model, version), p in ((MODEL_ELO, p_elo), (MODEL_HOME, p_home), (MODEL_MID, mid)):
-                if p is not None:
-                    rows.append({**base, "model": model, "model_version": version, "p_yes": p})
+
+def _build_game_rows(
+    con: duckdb.DuckDBPyConnection,
+    data_root: Path,
+    game_id: str,
+    as_of: datetime,
+    created_ts: datetime,
+    git_sha: str,
+    kickoffs: dict[str, datetime],
+    kalshi_df: pl.DataFrame | None,
+) -> tuple[list[dict], list[str]]:
+    rows, warnings = [], []
+    g = con.execute(
+        "SELECT season, home_team, away_team, location FROM nfl_game WHERE game_id = ?",
+        [game_id],
+    ).fetchone()
+    if g is None or game_id not in kickoffs:
+        raise ForecastError(f"{game_id}: not in nfl_game and kickoffs.json")
+    season, home, away, location = g
+    kickoff = kickoffs[game_id]
+    k_ticker, p_ticker = _tickers(away, home, kickoff.astimezone(ET))
+
+    k_row = _quote_row(kalshi_df, k_ticker)
+    if k_row is None:
+        raise ForecastError(f"{game_id}: Kalshi market {k_ticker} not in snapshot")
+    as_of_ts = k_row["ts_utc"]
+    check_timing(created_ts, as_of_ts, kickoff)
+
+    quotes = [(KALSHI, k_ticker, k_row, False)]
+    p_cutoff = min(as_of_ts + SNAPSHOT_TOLERANCE, as_of)
+    p_row = _quote_row(_latest_snapshot(data_root, POLYMARKET, p_cutoff), p_ticker)
+    if p_row is None or abs(p_row["ts_utc"] - as_of_ts) > SNAPSHOT_TOLERANCE:
+        warnings.append(f"{game_id}: no Polymarket US quote within {SNAPSHOT_TOLERANCE}")
+    else:
+        yes_team = NICKNAMES.get(p_row["subtitle"])
+        if yes_team not in (home, away):
+            raise ForecastError(f"{p_ticker}: cannot map YES side {p_row['subtitle']!r}")
+        quotes.append((POLYMARKET, p_ticker, p_row, yes_team == away))
+
+    stale = con.execute(
+        """SELECT EXISTS (
+               SELECT 1 FROM nfl_game
+               WHERE kickoff_ts < ?
+                 AND (home_team IN (?, ?) OR away_team IN (?, ?))
+                 AND (home_score IS NULL OR away_score IS NULL)
+           )""",
+        [to_naive_utc(as_of_ts) - nfl_features.FINISH_LAG, home, away, home, away],
+    ).fetchone()[0]
+    neutral = location == "Neutral"
+    p_elo = nfl_features.win_prob(con, home, away, as_of_ts, season, neutral)
+    p_home = nfl_features.home_rate_baseline(con, as_of_ts, neutral)
+    for venue, ticker, q, flipped in quotes:
+        bid, ask = q["yes_bid"], q["yes_ask"]
+        if flipped:
+            bid, ask = flip_quote(bid, ask)
+        base = {
+            "git_sha": git_sha, "venue": venue, "market_ticker": ticker, "game_id": game_id,
+            "yes_team": home, "prices_flipped": flipped, "as_of_ts": as_of_ts,
+            "created_ts": created_ts, "kickoff_ts": kickoff, "market_yes_bid": bid,
+            "market_yes_ask": ask, "snapshot_ts": q["ts_utc"], "inputs_stale": stale,
+        }  # fmt: skip
+        mid = market_mid(bid, ask)
+        for (model, version), p in ((MODEL_ELO, p_elo), (MODEL_HOME, p_home), (MODEL_MID, mid)):
+            if p is not None:
+                rows.append({**base, "model": model, "model_version": version, "p_yes": p})
     return rows, warnings
 
 
@@ -219,3 +270,41 @@ def write_batch(rows: list[dict], out_root: Path) -> Path:
         for r in rows:
             w.writerow([_fmt(r.get(c)) for c in COLUMNS])
     return path
+
+
+def write_game(rows: list[dict], out_root: Path) -> Path:
+    """Write one T-24h game's CSV, dated in ET, exclusively (never overwrite).
+
+    All rows must belong to the same game and horizon. Validation precedes any
+    filesystem writes. Call has_forecast first to detect legacy batch forecasts.
+    """
+    if not rows:
+        raise ForecastError("no rows to write")
+    game_id = rows[0]["game_id"]
+    for r in rows:
+        if r["game_id"] != game_id:
+            raise ForecastError("write_game requires exactly one game")
+        if r.get("horizon") != "t24":
+            raise ForecastError("write_game requires horizon t24")
+        check_timing(r["created_ts"], r["as_of_ts"], r["kickoff_ts"])
+    game_date = rows[0]["kickoff_ts"].astimezone(ET)
+    path = out_root / f"{game_date:%Y-%m-%d}" / f"nfl-t24_{game_id}.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(COLUMNS)
+        for r in rows:
+            w.writerow([_fmt(r.get(c)) for c in COLUMNS])
+    return path
+
+
+def has_forecast(game_id: str, out_root: Path = ROOT / "forecasts") -> bool:
+    """Whether any CSV row names this exact game, including legacy batch files.
+
+    This checks local presence, not remote receipt or proof of publication.
+    """
+    for path in out_root.rglob("*.csv"):
+        with path.open(newline="") as f:
+            if any(r.get("game_id") == game_id for r in csv.DictReader(f)):
+                return True
+    return False
