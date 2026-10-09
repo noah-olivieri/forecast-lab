@@ -95,8 +95,12 @@ def usual_starter(starts):
     return max((qb for qb, n in counts.items() if n == best), key=last_start.__getitem__)
 
 
-def backup_flags(game, prior, starters):
-    """Flag each team whose starter tonight is not its usual starter."""
+def backup_flags(game, prior, starters, *, new_starter_rule=False):
+    """Flag each team whose starter tonight is not its usual starter.
+
+    With `new_starter_rule` (QB-002), a flagged starter who started every one of the team's
+    earlier games this season (missing IDs skipped) is exempt; the QB-001 flag is unchanged.
+    """
     if any(
         o.game.game_id == game.game_id or o.game.kickoff + FINISH_LAG >= game.as_of for o in prior
     ):
@@ -105,20 +109,20 @@ def backup_flags(game, prior, starters):
     ordered = sorted(prior, key=lambda o: (o.game.kickoff, o.game.game_id))
     result = {}
     for side, team in (("home", game.home_team), ("away", game.away_team)):
-        starts = []
+        starts, this_season = [], []
         for o in ordered:
             if team not in (o.game.home_team, o.game.away_team):
                 continue
             was = "home" if o.game.home_team == team else "away"
             starts.append(starters.get(o.game.game_id, {}).get(f"{was}_qb"))
+            if o.game.season == game.season:
+                this_season.append(starts[-1])
         usual, qb = usual_starter(starts), tonight.get(f"{side}_qb")
-        result.update(
-            {
-                side: usual is not None and qb is not None and qb != usual,
-                f"{side}_usual": usual,
-                f"{side}_tonight": qb,
-            }
-        )
+        flag = usual is not None and qb is not None and qb != usual
+        result.update({side: flag, f"{side}_usual": usual, f"{side}_tonight": qb})
+        if new_starter_rule:
+            exempt = flag and all(s == qb for s in this_season if s is not None)
+            result.update({f"{side}_v2": flag and not exempt, f"{side}_exempt": exempt})
     return result
 
 
@@ -142,50 +146,65 @@ def choose_penalty(brier_by_penalty):
     return best
 
 
-def score_games(dataset, starters):
-    """One row per target game: frozen Elo, flags and P(home) at every grid penalty."""
-    rows = []
-    for game in dataset.targets():
-        known = starters.get(game.game_id)
-        if known and (known["home_team"], known["away_team"]) != (game.home_team, game.away_team):
-            raise ValueError(f"starter source teams disagree: {game.game_id}")
-        prior = dataset.eligible(game.as_of)
-        p_elo = frozen_predictions(prior, game)["elo"]
-        flags = backup_flags(game, prior, starters)
-        label = dataset.evaluation_label(game.game_id)
-        y = None
-        if label is not None:
-            margin = label.home_score - label.away_score
-            y = 1 if margin > 0 else 0 if margin < 0 else 0.5
-        p = [
-            adjusted_probability(
-                p_elo,
-                points * ELO_PER_POINT if flags["home"] else 0.0,
-                points * ELO_PER_POINT if flags["away"] else 0.0,
-            )
-            for points in PENALTIES
-        ]
-        rows.append(
-            {
-                "game_id": game.game_id,
-                "season": game.season,
-                "week": game.week,
-                "game_type": game.game_type,
-                "kickoff": stamp(game.kickoff),
-                "home_team": game.home_team,
-                "away_team": game.away_team,
-                "home_flag": flags["home"],
-                "away_flag": flags["away"],
-                "home_usual": flags["home_usual"],
-                "home_tonight": flags["home_tonight"],
-                "away_usual": flags["away_usual"],
-                "away_tonight": flags["away_tonight"],
-                "p_elo": p_elo,
-                "p": p,
-                "y": y,
-            }
+def _grid(p_elo, home_flag, away_flag):
+    return [
+        adjusted_probability(
+            p_elo,
+            points * ELO_PER_POINT if home_flag else 0.0,
+            points * ELO_PER_POINT if away_flag else 0.0,
         )
-    return rows
+        for points in PENALTIES
+    ]
+
+
+def score_game(dataset, game, starters, *, new_starter_rule=False):
+    """Frozen Elo, flags and P(home) at every grid penalty for one target game."""
+    known = starters.get(game.game_id)
+    if known and (known["home_team"], known["away_team"]) != (game.home_team, game.away_team):
+        raise ValueError(f"starter source teams disagree: {game.game_id}")
+    prior = dataset.eligible(game.as_of)
+    p_elo = frozen_predictions(prior, game)["elo"]
+    flags = backup_flags(game, prior, starters, new_starter_rule=new_starter_rule)
+    label = dataset.evaluation_label(game.game_id)
+    y = None
+    if label is not None:
+        margin = label.home_score - label.away_score
+        y = 1 if margin > 0 else 0 if margin < 0 else 0.5
+    row = {
+        "game_id": game.game_id,
+        "season": game.season,
+        "week": game.week,
+        "game_type": game.game_type,
+        "kickoff": stamp(game.kickoff),
+        "home_team": game.home_team,
+        "away_team": game.away_team,
+        "home_flag": flags["home"],
+        "away_flag": flags["away"],
+        "home_usual": flags["home_usual"],
+        "home_tonight": flags["home_tonight"],
+        "away_usual": flags["away_usual"],
+        "away_tonight": flags["away_tonight"],
+        "p_elo": p_elo,
+        "p": _grid(p_elo, flags["home"], flags["away"]),
+        "y": y,
+    }
+    if new_starter_rule:
+        row.update(
+            home_flag_v2=flags["home_v2"],
+            away_flag_v2=flags["away_v2"],
+            home_exempt=flags["home_exempt"],
+            away_exempt=flags["away_exempt"],
+            p_v2=_grid(p_elo, flags["home_v2"], flags["away_v2"]),
+        )
+    return row
+
+
+def score_games(dataset, starters, *, new_starter_rule=False):
+    """One row per target game; QB-002 fields are added only with `new_starter_rule`."""
+    return [
+        score_game(dataset, game, starters, new_starter_rule=new_starter_rule)
+        for game in dataset.targets()
+    ]
 
 
 def _mean(values):
@@ -314,10 +333,119 @@ def report(rows, odds):
     }
 
 
-def provenance():
-    hashes = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in PROVENANCE_PATHS}
+def _v2_summary(rows, k1, k2):
+    def mean_loss(prob, metric):
+        return _mean([probability_losses(prob(r), r["y"])[metric] for r in rows])
+
+    elo, qb001, qb002 = (lambda r: r["p_elo"]), (lambda r: r["p"][k1]), (lambda r: r["p_v2"][k2])
+    result = {
+        "n": len(rows),
+        "qb001_games_flagged": sum(r["home_flag"] or r["away_flag"] for r in rows),
+        "qb002_games_flagged": sum(r["home_flag_v2"] or r["away_flag_v2"] for r in rows),
+        "qb001_team_flags": sum(r["home_flag"] + r["away_flag"] for r in rows),
+        "qb002_team_flags": sum(r["home_flag_v2"] + r["away_flag_v2"] for r in rows),
+        "exempted_team_flags": sum(r["home_exempt"] + r["away_exempt"] for r in rows),
+    }
+    for name in ("qb001", "qb002"):
+        result[f"{name}_flag_rate_games"] = (
+            result[f"{name}_games_flagged"] / len(rows) if rows else None
+        )
+        result[f"{name}_flag_rate_teams"] = (
+            result[f"{name}_team_flags"] / (2 * len(rows)) if rows else None
+        )
+    for name, prob in (("elo", elo), ("qb001", qb001), ("qb002", qb002)):
+        for metric in ("brier", "log_loss"):
+            result[f"{name}_{metric}"] = mean_loss(prob, metric)
+    if rows:
+        result["qb002_minus_qb001_brier"] = result["qb002_brier"] - result["qb001_brier"]
+        result["qb002_minus_elo_brier"] = result["qb002_brier"] - result["elo_brier"]
+    return result
+
+
+def report_v2(rows, odds):
+    """QB-002 (research/QB002_PREREG.md): each model is scored at its own chosen penalty."""
+    scored = [r for r in rows if r["y"] is not None]
+    tune = [r for r in scored if r["season"] in TUNE_SEASONS]
+    test = [r for r in scored if r["season"] in TEST_SEASONS]
+    grids = {
+        name: {
+            points: _mean([probability_losses(r[key][i], r["y"])["brier"] for r in tune])
+            for i, points in enumerate(PENALTIES)
+        }
+        for name, key in (("qb001", "p"), ("qb002", "p_v2"))
+    }
+    chosen = {name: choose_penalty(grid) for name, grid in grids.items()}
+    k1, k2 = PENALTIES.index(chosen["qb001"]), PENALTIES.index(chosen["qb002"])
+
+    def loss(prob, score=probability_losses):
+        return lambda r: score(prob(r), r["y"])
+
+    elo, qb001, qb002 = (lambda r: r["p_elo"]), (lambda r: r["p"][k1]), (lambda r: r["p_v2"][k2])
+    primary = _paired(test, loss(qb002), loss(qb001))
+    decisive = [
+        r
+        for r in test
+        if r["y"] in (0, 1)
+        and odds.get(r["game_id"], {}).get("proportional", {}).get("status") == "ok"
+    ]
+
+    def moneyline(r):
+        return odds[r["game_id"]]["proportional"]["p_home"]
+
+    ci = primary["brier"]["ci95"]
+    return {
+        "prereg": "research/QB002_PREREG.md",
+        "penalty_grid_points": list(PENALTIES),
+        "elo_per_point": ELO_PER_POINT,
+        "tune_n": len(tune),
+        "tune_brier_by_penalty": {
+            name: {str(p): v for p, v in grid.items()} for name, grid in grids.items()
+        },
+        "qb001_penalty_points": chosen["qb001"],
+        "qb002_penalty_points": chosen["qb002"],
+        "success": bool(ci and ci[1] < 0),
+        "primary_qb002_minus_qb001": primary,
+        "qb002_minus_elo": _paired(test, loss(qb002), loss(elo)),
+        "decisive_moneyline": {
+            "label": "historical moneyline reference; timing and book unknown",
+            "n": len(decisive),
+            **{
+                f"{name}_{metric}": _mean([binary_score(prob(r), r["y"])[metric] for r in decisive])
+                for name, prob in (
+                    ("elo", elo),
+                    ("qb001", qb001),
+                    ("qb002", qb002),
+                    ("moneyline", moneyline),
+                )
+                for metric in ("brier", "log_loss")
+            },
+            "qb002_minus_elo": _paired(
+                decisive, loss(qb002, binary_score), loss(elo, binary_score)
+            ),
+            "qb002_minus_moneyline": _paired(
+                decisive, loss(qb002, binary_score), loss(moneyline, binary_score)
+            ),
+        },
+        "tune": _v2_summary(tune, k1, k2),
+        "test": _v2_summary(test, k1, k2),
+        "per_season": {
+            str(s): _v2_summary([r for r in scored if r["season"] == s], k1, k2)
+            for s in sorted({r["season"] for r in scored})
+        },
+        "test_weeks_1_4": _v2_summary(
+            [r for r in test if r["game_type"] == "REG" and r["week"] <= 4], k1, k2
+        ),
+        "test_after_week_4": _v2_summary(
+            [r for r in test if not (r["game_type"] == "REG" and r["week"] <= 4)], k1, k2
+        ),
+    }
+
+
+def provenance(extra=()):
+    paths = (*PROVENANCE_PATHS, *extra)
+    hashes = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in paths}
     sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    patch = subprocess.check_output(["git", "diff", "HEAD", "--", *PROVENANCE_PATHS], cwd=ROOT)
+    patch = subprocess.check_output(["git", "diff", "HEAD", "--", *paths], cwd=ROOT)
     return {
         "git_sha": sha,
         "dirty_patch_hash": hashlib.sha256(patch).hexdigest(),
@@ -326,7 +454,15 @@ def provenance():
     }
 
 
-def run(manifest_path, odds_manifest_path, starters_path, output_root=None, run_id=None):
+def run(
+    manifest_path,
+    odds_manifest_path,
+    starters_path,
+    output_root=None,
+    run_id=None,
+    *,
+    new_starter_rule=False,
+):
     dataset, source_manifest = load_manifest(Path(manifest_path), require_execution_policy=True)
     if source_manifest["synthetic"]:
         raise ValueError("QB-001 runs only on the reviewed real manifest")
@@ -360,19 +496,24 @@ def run(manifest_path, odds_manifest_path, starters_path, output_root=None, run_
         "final_holdout_access": False,
         "inputs_sha256": inputs,
     }
-    write("started.json", {"config": config, "provenance": provenance(), "status": "running"})
+    extra = ()
+    if new_starter_rule:
+        config["new_starter_rule"] = True
+        extra = ("research/QB002_PREREG.md",)
+    write("started.json", {"config": config, "provenance": provenance(extra), "status": "running"})
     starters = load_starters(starters_path)
-    rows = score_games(dataset, starters)
+    rows = score_games(dataset, starters, new_starter_rule=new_starter_rule)
     with (out / "games.jsonl").open("x") as handle:
         for row in rows:
             handle.write(canonical(row) + "\n")
-    metrics = report(rows, load_odds_partitions(odds_manifest_path))
+    odds = load_odds_partitions(odds_manifest_path)
+    metrics = report_v2(rows, odds) if new_starter_rule else report(rows, odds)
     write("metrics.json", metrics)
     write(
         "manifest.json",
         {
             "config": config,
-            "provenance": provenance(),
+            "provenance": provenance(extra),
             "status": "complete",
             "games_sha256": hashlib.sha256((out / "games.jsonl").read_bytes()).hexdigest(),
             "metrics_digest": digest(metrics),
@@ -387,9 +528,18 @@ def main():
     parser.add_argument("--odds-manifest", type=Path, required=True)
     parser.add_argument("--starters", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
+    parser.add_argument(
+        "--new-starter-rule", action="store_true", help="QB-002: exempt season-long starters"
+    )
     args = parser.parse_args()
     try:
-        out = run(args.manifest, args.odds_manifest, args.starters, run_id=args.run_id)
+        out = run(
+            args.manifest,
+            args.odds_manifest,
+            args.starters,
+            run_id=args.run_id,
+            new_starter_rule=args.new_starter_rule,
+        )
     except (ValueError, FileExistsError) as exc:
         parser.exit(2, f"QB-001 refused: {exc}\n")
     print(out)
