@@ -18,16 +18,20 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
 - Leakage rules (PLAN.md 7): every feature function takes `as_of`; ALFRED vintages only; the
   market price compared to a forecast comes from the same snapshot.
 - `main` is protected against force-push and deletion (ruleset, no bypass). Never force-push.
-- **One exception to "ask before pushing":** the `forecast` workflow (github-actions[bot],
-  `.github/scripts/push_forecasts.sh`) may push NEW files under `forecasts/` to `main` without
-  asking. It never modifies or deletes one (`ci.yml` fails any commit that does). Every other
-  push, including all code, workflow and config changes, still needs the user's approval.
+- **Two exceptions to "ask before pushing":** the `forecast` workflow (github-actions[bot],
+  `.github/scripts/push_forecasts.sh`) may push NEW files under `forecasts/`, and the `settle`
+  workflow (github-actions[bot], `.github/scripts/push_results.sh`) may push NEW files under
+  `results/`, to `main` without asking. Neither ever modifies or deletes an existing file
+  (`ci.yml` fails any commit that does). Every other push, including all code, workflow and
+  config changes, still needs the user's approval.
 - The pre-registered rule lives in `RESEARCH_PROTOCOL.md`. Never edit anything above its
   "Changes" section; amendments are new dated sections under "Changes".
 
 ## Layout
 - `main`: code, config, `forecasts/`. `data` branch (orphan): `snapshots/hourly|weekly/*.parquet`
   written only by Actions. `data/` locally is gitignored (DuckDB + raw).
+- `results/<season>/<game_id>.csv`: settled outcomes, written only by the `settle` workflow
+  (`jobs/settle.py`); append-only like `forecasts/`.
 - `src/lab/ingest/{common,kalshi,polymarket_us}.py`, `jobs/snapshot_markets.py`,
   `jobs/in_window.py` (collector gate), `jobs/gapcheck.py`, `jobs/compact_weekly.py`.
 - Tracked markets live in `config/markets.yaml`.
