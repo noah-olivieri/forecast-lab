@@ -1,0 +1,2 @@
+game_id,home_team,away_team,home_score,away_score,y,source,fetched_at_utc
+2026_05_TB_DAL,DAL,TB,16,24,0,nflverse schedules (nflreadpy 0.1.5),2026-10-09T20:55:12Z
