@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Fail if any commit in BASE..HEAD modifies, deletes, renames or retypes an existing file under
-# forecasts/. Adding new files is fine. Checked commit by commit (-m also covers merge commits),
-# so an edit that a later commit reverts is still caught.
+# forecasts/ or results/. Adding new files is fine. Checked commit by commit (-m also covers merge
+# commits), so an edit that a later commit reverts is still caught.
 # Usage: check_forecasts_append_only.sh BASE [HEAD]
 #   BASE empty, all zeros (new branch) or unknown -> the whole history of HEAD is checked.
 set -euo pipefail
@@ -16,10 +16,10 @@ else
   range="$head"
 fi
 
-changes="$(git log -m --no-renames --diff-filter=MDT --name-status --format= "$range" -- forecasts/)"
+changes="$(git log -m --no-renames --diff-filter=MDT --name-status --format= "$range" -- forecasts/ results/)"
 if [ -n "$changes" ]; then
-  echo "::error title=forecasts/ is append-only::existing forecast files were changed:"
+  echo "::error title=forecasts/ and results/ are append-only::existing files were changed:"
   echo "$changes"
   exit 1
 fi
-echo "forecasts/ is append-only over $range"
+echo "forecasts/ and results/ are append-only over $range"

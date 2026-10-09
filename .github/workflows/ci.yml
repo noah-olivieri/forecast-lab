@@ -1,7 +1,8 @@
 name: ci
 
-# Tests, lint, and a guard that forecasts/ stays append-only: no commit may modify or delete an
-# existing forecast file (adding new ones is fine). The forecast proof (PLAN 7a) depends on it.
+# Tests, lint, and a guard that forecasts/ and results/ stay append-only: no commit may modify or
+# delete an existing forecast or result file (adding new ones is fine). The forecast proof
+# (PLAN 7a) and the settled outcomes depend on it.
 on:
   push:
   pull_request:
@@ -23,7 +24,7 @@ jobs:
       - run: uv sync --frozen
       - run: uv run pytest -q
       - run: uv run ruff check .
-      - name: forecasts/ is append-only
+      - name: forecasts/ and results/ are append-only
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: .github/scripts/check_forecasts_append_only.sh "$BASE" HEAD

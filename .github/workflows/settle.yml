@@ -1,0 +1,49 @@
+name: settle
+
+# Daily 15:37 UTC: settle forecasted NFL games from nflverse final scores (jobs/settle.py).
+#  * A game settles once it has no result file, nflverse has both scores and it is at least
+#    kickoff + 6h. Each result is a NEW file results/<season>/<game_id>.csv; existing results
+#    are never modified (ci.yml's append-only guard enforces it).
+#  * Odd cases are flagged, never guessed: the job still writes the ordinary results, exits 1,
+#    and the last step fails the run so GitHub emails.
+#  * workflow_dispatch has no inputs: nobody picks which games settle.
+on:
+  schedule:
+    - cron: "37 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: settle
+  cancel-in-progress: false
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
+      - name: Settle
+        id: settle
+        continue-on-error: true
+        run: uv run --no-sync python jobs/settle.py
+      - name: Commit and push new result files
+        if: steps.settle.outputs.files != ''
+        env:
+          FILES: ${{ steps.settle.outputs.files }}
+        run: |
+          IFS=, read -r -a paths <<< "$FILES"
+          .github/scripts/push_results.sh "${paths[@]}"
+      - name: Fail if anything was flagged or the job crashed
+        if: steps.settle.outcome == 'failure'
+        run: |
+          echo "::error::settlement flagged at least one game or crashed (see the Settle step)"
+          exit 1
