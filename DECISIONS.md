@@ -69,3 +69,32 @@ This is the second test on 2015-2023, so it is development evidence, not a final
 The flagged-only summary was not pre-registered. New starters are flagged for their first
 4 games, not 3 as the prereg estimated; the rule was applied as written. CIs are
 conditional on the chosen penalty.
+
+## 2026-10-09: QB-002 new-starter split is a null result vs QB-001
+
+Result: QB-002 did not beat QB-001 on the pre-registered test (prereg 10832a4, run
+qb002-new-starter-v1, code 37c7ac3). QB-002 minus QB-001 Brier on 2015-2023, all games:
+-0.00049, 95% CI [-0.00127, +0.00054]. QB-002 wins 5 of 9 seasons. The two are treated
+as equivalent, and QB-002 is not claimed to be better.
+
+The rule did what it was built to do. Weeks 1-4 flags fell from 55% to 15% of games, the
+flag rate fell from 35.9% to 26.4%, and the chosen penalty rose from 2 to 3 points.
+Weeks 1-4 Brier improved by 0.0008 against QB-001.
+
+Against frozen Elo (not the primary test): -0.0021 Brier, 95% CI [-0.0041, -0.0009].
+It closes about 20% of Elo's gap to the historical moneyline, vs 15% for QB-001. The
+moneyline is still better by +0.0087, 95% CI [+0.0063, +0.0119].
+
+Predictions vs actual: beats QB-001 (no), penalty 4 (chosen 3), flag rate 20% (26.4%).
+
+Why it was a null result (my words): "Because the effect of a rookie quarterback did not
+affect the games as much as we predicted."
+
+Review note (from Claude): The rule changed a flag in about a tenth of test games (258 of
+2,458). Because the two models also use different penalties (2 vs 3 points), their
+forecasts differ in about a third (790). The per-game differences are small and point
+both ways (QB-002 wins 5 of 9 seasons), so the test could not separate them.
+
+Caveats: This is the third test on 2015-2023, so it is development evidence only. The
+run's wall-clock time (1h51) included the Mac sleeping; CPU time was about 25 minutes.
+Results are unaffected.
