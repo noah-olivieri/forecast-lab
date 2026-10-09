@@ -1,0 +1,324 @@
+{
+  "date": "2026-10-08",
+  "synthetic": true,
+  "historical_accuracy_claim": false,
+  "penalty_recovery": {
+    "games": 496,
+    "results": [
+      {
+        "penalty": 1,
+        "offense_slope": 0.030121552045475668,
+        "defense_slope": 0.030121552045475748
+      },
+      {
+        "penalty": 10,
+        "offense_slope": 0.003096172948650772,
+        "defense_slope": 0.0030961729486507746
+      },
+      {
+        "penalty": 100,
+        "offense_slope": 0.0003104833493602902,
+        "defense_slope": 0.00031048334936029
+      },
+      {
+        "penalty": 0.0003,
+        "offense_slope": 0.9904236375442472,
+        "defense_slope": 0.9904236375442471
+      },
+      {
+        "penalty": 0.001,
+        "offense_slope": 0.9687771256164478,
+        "defense_slope": 0.9687771256164495
+      },
+      {
+        "penalty": 0.003,
+        "offense_slope": 0.911841335667831,
+        "defense_slope": 0.9118413356678303
+      }
+    ]
+  },
+  "paired_192": {
+    "description": "First 192 games of invented_league(2), same manifest/seed/gates/draws and old nine-setting grid; engineering comparison only",
+    "manifest_sha256": "74eab3e68d5742ed5dc0620f1066b15b52f98aa1edad405ba7647c16f0c6f845",
+    "partition_hashes": [
+      {
+        "path": "schedules-2011.csv",
+        "season": 2011,
+        "kind": "schedules",
+        "role": "development",
+        "sha256": "5d3addb4386ece888ad574dfeeab4848dfbb774e05fcee9805911da8e6a12d92"
+      },
+      {
+        "path": "labels-2011.csv",
+        "season": 2011,
+        "kind": "labels",
+        "role": "development",
+        "sha256": "5478db60f2ad70139ee640842099ce9ea51fd545c4c5e4da10fe63a336a01a58"
+      }
+    ],
+    "before": {
+      "games": 192,
+      "seconds": 31.01211795800009,
+      "bytes": 23510609,
+      "components": {
+        "metrics.json": 118045,
+        "predictions.jsonl": 2050581,
+        "splits.json": 19586,
+        "exclusions.json": 3,
+        "started.json": 2166,
+        "events.jsonl": 24192,
+        "manifest.json": 2350,
+        "trial_ledger.json": 3,
+        "evaluation.json": 859683,
+        "probabilities": 200222,
+        "samples": 2844143,
+        "fits": 7305059,
+        "banks": 10084576
+      }
+    },
+    "after": {
+      "games": 192,
+      "seconds": 5.572498790999816,
+      "bytes": 5441001,
+      "components": {
+        "metrics.json": 117195,
+        "predictions.jsonl": 2358693,
+        "splits.json": 19586,
+        "exclusions.json": 3,
+        "started.json": 2930,
+        "events.jsonl": 24192,
+        "manifest.json": 3114,
+        "trial_ledger.json": 3,
+        "evaluation.json": 968339,
+        "records": 784880,
+        "probabilities": 60423,
+        "samples": 854027,
+        "fits": 87319,
+        "sequences": 159067,
+        "banks": 1230
+      },
+      "engineering_grid": [
+        [
+          1,
+          365
+        ],
+        [
+          1,
+          730
+        ],
+        [
+          1,
+          null
+        ],
+        [
+          10,
+          365
+        ],
+        [
+          10,
+          730
+        ],
+        [
+          10,
+          null
+        ],
+        [
+          100,
+          365
+        ],
+        [
+          100,
+          730
+        ],
+        [
+          100,
+          null
+        ]
+      ],
+      "synthetic": true,
+      "historical_accuracy_claim": false
+    },
+    "prediction_invariance": {
+      "matched_prediction_rows": 2688,
+      "matched_forecast_draw_arrays": 176,
+      "fields_checked": [
+        "status",
+        "reason",
+        "actual_model",
+        "p_share",
+        "p_home",
+        "p_away",
+        "p_tie",
+        "fitted_home_mean",
+        "fitted_away_mean",
+        "expected_margin",
+        "expected_total",
+        "reservoir_size",
+        "rejected_ties",
+        "attempts",
+        "seed"
+      ],
+      "historical_accuracy_claim": false
+    },
+    "before_loaded_source_snapshot_hashes": {
+      "src/lab/backtest/nfl_score.py": "0c5077e4a47f1433e689f3692551201cabc88fbcb46ae6616056386312d3b1ac",
+      "src/lab/backtest/score_data.py": "19f14d52e7abe10d391e84760600c17c73dc1ab0e234ecf16c721cc08a7617a1",
+      "src/lab/models/nfl_score.py": "7c5b61df7fd68ecc7b34842293739b13b6e7f593539514ce408f8c555d6b23bd",
+      "src/lab/eval/score_metrics.py": "d31bfa5c4c705b8809b15156851dd61149b86b14a5898bb74afaed73a6f2630e"
+    },
+    "before_provenance_note": "Baseline imports review-start source copies. ROOT points to workspace for frozen sources/Git; before started.json workspace hashes do not identify loaded RF-001 modules. Use explicit snapshot hashes above.",
+    "after_working_file_hashes": {
+      "pyproject.toml": "85469eda577b4d6bab41367fd998f992b5a747998686364345354ffa4a89861f",
+      "research/evaluation_protocol.md": "5c1b7c67015a5279b0cf8a027392d6c7a82bed82e6b44bb1f73327cb5f56f878",
+      "src/lab/backtest/nfl_score.py": "55c35dabc6c966a40d963f6172d035957cb4e1ff2992d01be69e1bf78cd8f871",
+      "src/lab/backtest/score_artifacts.py": "beeee3b8f25068a6dfc1d708cc091f26829ec13883a70133fb97ddfa8d899d76",
+      "src/lab/backtest/score_data.py": "0ecd4f6a23db75e3fe873759312e2afc581551b44d20100571113291c30e1a45",
+      "src/lab/eval/score_metrics.py": "d31bfa5c4c705b8809b15156851dd61149b86b14a5898bb74afaed73a6f2630e",
+      "src/lab/features/nfl.py": "4dbd1c79857ae1d54cdc53b123bccd423e4b3442fcb4d86371cfec4062c27749",
+      "src/lab/models/nfl_elo.py": "921c52d4ff1d90fda38357d9c5e544f165f6aeba7f56a4e92d3a4c3072364e42",
+      "src/lab/models/nfl_score.py": "6f0015db4c306695832c0df265d957acf51ae275a59f5a986e7299864fc8ee65",
+      "src/lab/store/asof.py": "1253e6ecd5fb0cc75d5dd9e26cb073642cf6840f78c0a91d906b46904c682901",
+      "uv.lock": "2c181b15e9f4a130b5722c573e5247c38f629a244b4c0442e922b040aeadfba6"
+    }
+  },
+  "current_grid_192": {
+    "games": 192,
+    "seconds": 5.901618833000612,
+    "bytes": 6098790,
+    "components": {
+      "metrics.json": 117195,
+      "predictions.jsonl": 2363501,
+      "splits.json": 19586,
+      "exclusions.json": 3,
+      "started.json": 2960,
+      "events.jsonl": 24192,
+      "manifest.json": 3144,
+      "trial_ledger.json": 3,
+      "evaluation.json": 968339,
+      "records": 787582,
+      "probabilities": 62230,
+      "samples": 1509421,
+      "fits": 80337,
+      "sequences": 159067,
+      "banks": 1230
+    },
+    "registered_grid": [
+      [
+        0.0003,
+        365
+      ],
+      [
+        0.0003,
+        730
+      ],
+      [
+        0.0003,
+        null
+      ],
+      [
+        0.001,
+        365
+      ],
+      [
+        0.001,
+        730
+      ],
+      [
+        0.001,
+        null
+      ],
+      [
+        0.003,
+        365
+      ],
+      [
+        0.003,
+        730
+      ],
+      [
+        0.003,
+        null
+      ]
+    ],
+    "synthetic": true,
+    "historical_accuracy_claim": false
+  },
+  "engineering_grid_544_after_only": {
+    "games": 544,
+    "seconds": 68.47839154100075,
+    "bytes": 63121074,
+    "components": {
+      "metrics.json": 359108,
+      "predictions.jsonl": 12252540,
+      "splits.json": 56578,
+      "exclusions.json": 3,
+      "started.json": 3244,
+      "events.jsonl": 68544,
+      "manifest.json": 3428,
+      "trial_ledger.json": 3,
+      "evaluation.json": 5494214,
+      "records": 3885162,
+      "probabilities": 6192221,
+      "samples": 33384474,
+      "fits": 471564,
+      "sequences": 921501,
+      "banks": 28490
+    },
+    "engineering_grid": [
+      [
+        1,
+        365
+      ],
+      [
+        1,
+        730
+      ],
+      [
+        1,
+        null
+      ],
+      [
+        10,
+        365
+      ],
+      [
+        10,
+        730
+      ],
+      [
+        10,
+        null
+      ],
+      [
+        100,
+        365
+      ],
+      [
+        100,
+        730
+      ],
+      [
+        100,
+        null
+      ]
+    ],
+    "synthetic": true,
+    "historical_accuracy_claim": false
+  },
+  "interrupted_544_before": {
+    "complete": false,
+    "bytes": 332487974,
+    "paired_comparison_eligible": false
+  },
+  "limitations": [
+    "Single wall-time measurements on this machine",
+    "Larger 544-game baseline was interrupted; Claude numbers are reported, not independently paired",
+    "No full development-fold capacity measurement",
+    "Storage sharing can create new suffixes under label/schedule corrections",
+    "No historical accuracy inference"
+  ],
+  "fixture_source_hashes": {
+    "tests/rf001_workloads.py": "cbaaca5686746af184f4ea83bc8771f0665d49f1eeb9b2f025a8dc8e758df7e1",
+    "tests/rf001_fixtures.py": "4969bdddd3606f83da6af9193450fb6f1f7c2d33e5991f58b593ee933af288cf"
+  }
+}

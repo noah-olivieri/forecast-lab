@@ -1,0 +1,531 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-10-08",
+  "audit_ref": "research/nfl_postseason_rules.md",
+  "constraint_review_complete": true,
+  "archive_complete": false,
+  "all_annual_editions_directly_verified": false,
+  "interpretation": "Human-reviewed ordinary postseason no-final-tie constraint; continuity inferences are explicit and not annual rulebook verification. No model run or outcome-based validation.",
+  "sources": {
+    "NFL-2004-R16": {
+      "publisher": "National Football League",
+      "document_version": "2004 Official Playing Rules",
+      "url": "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf",
+      "section": "Rule 16, Section 1, Articles 1 and 3; printed page 109, PDF page 117",
+      "web_status": "rule_text_verified",
+      "annual_edition": 2004,
+      "sha256": "f7d56f2bda6376e8d9a23460c5273eca4636946a7c7184fad9939b2c2cc80d80",
+      "local_path": "data/research/rules/nfl-rulebook-2004.pdf",
+      "archive_status": "downloaded",
+      "fetched_ts": "2026-10-09T01:13:34.514275+00:00",
+      "bytes": 1630809,
+      "final_url": "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf",
+      "local_rule_text_review": "PDFKit extraction independently checked local Rule 16 Section 1 Articles 1 and 3 against the edition title and printed page 109 (PDF page 117)."
+    },
+    "GB-2009-COMMITTEE": {
+      "publisher": "Green Bay Packers",
+      "document_version": "2009-03-17 official club report quoting competition committee leadership",
+      "url": "https://www.packers.com/news/safety-at-forefront-overtime-not-up-for-change-at-owners-meeting-2404816",
+      "section": "Current sudden-death format and absence of proposed overtime change",
+      "web_status": "text_verified",
+      "annual_edition": null,
+      "sha256": null,
+      "local_path": null
+    },
+    "NFL-2010-POST": {
+      "publisher": "National Football League",
+      "document_version": "2010 postseason procedures and Official Casebook references",
+      "url": "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+      "section": "POSTSEASON - MODIFIED SUDDEN DEATH; continuation of fifteen-minute periods",
+      "web_status": "rule_text_verified",
+      "annual_edition": null,
+      "sha256": null,
+      "local_path": null
+    },
+    "IND-2012-POST": {
+      "publisher": "Indianapolis Colts",
+      "document_version": "Official 2012 postseason preview, January 2013",
+      "url": "https://www.colts.com/news/super-season-kicks-off-9277377",
+      "section": "OT & PLAYOFFS - WINNING COMBINATION",
+      "web_status": "rule_text_verified",
+      "annual_edition": null,
+      "sha256": null,
+      "local_path": null
+    },
+    "NFL-2022-AMENDMENT": {
+      "publisher": "National Football League",
+      "document_version": "2022 approved postseason overtime change",
+      "url": "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-",
+      "section": "Approved postseason change and identification of preceding format beginning in 2010",
+      "web_status": "text_verified",
+      "annual_edition": null,
+      "sha256": null,
+      "local_path": null
+    },
+    "NO-2022-APPROVED": {
+      "publisher": "New Orleans Saints",
+      "document_version": "Approved 2022 Playing Rules Summary",
+      "url": "https://www.neworleanssaints.com/news/nfl-owners-approve-change-to-postseason-overtime-rules",
+      "section": "Rule 16 amendment",
+      "web_status": "text_verified",
+      "annual_edition": null,
+      "sha256": null,
+      "local_path": null
+    },
+    "NFL-2023-R16": {
+      "publisher": "National Football League",
+      "document_version": "2023 Official Playing Rules",
+      "url": "https://operations.nfl.com/media/rwnj5upg/2023-rulebook_final.pdf",
+      "section": "Rule 16, Section 1, Article 4(d),(i), printed page 76",
+      "web_status": "rule_text_verified_from_official_search_index; current PDF fetch unavailable",
+      "annual_edition": 2023,
+      "sha256": null,
+      "local_path": null,
+      "archive_status": "failed",
+      "fetched_ts": "2026-10-09T01:13:37.055228+00:00",
+      "archive_failure": "HTTP Error 404: Not Found"
+    },
+    "NFL-2014-R16": {
+      "publisher": "National Football League",
+      "document_version": "2014 annual PDF candidate",
+      "url": "https://operations.nfl.com/images/content/rules/2014rulebook.pdf",
+      "section": "Rule 16 not inspected",
+      "web_status": "candidate URL only; operative rule text not verified",
+      "annual_edition": 2014,
+      "sha256": null,
+      "local_path": null,
+      "used_for_constraint": false,
+      "archive_status": "failed",
+      "fetched_ts": "2026-10-09T01:13:35.268332+00:00",
+      "archive_failure": "HTTP Error 404: Not Found"
+    },
+    "NFL-2021-R16": {
+      "publisher": "National Football League",
+      "document_version": "2021 annual PDF candidate",
+      "url": "https://operations.nfl.com/media/5427/2021-nfl-rulebook.pdf",
+      "section": "Rule 16 not inspected",
+      "web_status": "candidate URL only; operative rule text not verified",
+      "annual_edition": 2021,
+      "sha256": null,
+      "local_path": null,
+      "used_for_constraint": false,
+      "archive_status": "failed",
+      "fetched_ts": "2026-10-09T01:13:36.048844+00:00",
+      "archive_failure": "HTTP Error 404: Not Found"
+    }
+  },
+  "by_season": [
+    {
+      "season": 2006,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf",
+        "https://www.packers.com/news/safety-at-forefront-overtime-not-up-for-change-at-owners-meeting-2404816",
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7"
+      ],
+      "source_ids": [
+        "NFL-2004-R16",
+        "GB-2009-COMMITTEE",
+        "NFL-2010-POST"
+      ],
+      "evidence_kind": "official_rule_anchor_and_dated_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "first_score_sudden_death",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2007,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf",
+        "https://www.packers.com/news/safety-at-forefront-overtime-not-up-for-change-at-owners-meeting-2404816",
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7"
+      ],
+      "source_ids": [
+        "NFL-2004-R16",
+        "GB-2009-COMMITTEE",
+        "NFL-2010-POST"
+      ],
+      "evidence_kind": "official_rule_anchor_and_dated_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "first_score_sudden_death",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2008,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf",
+        "https://www.packers.com/news/safety-at-forefront-overtime-not-up-for-change-at-owners-meeting-2404816",
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7"
+      ],
+      "source_ids": [
+        "NFL-2004-R16",
+        "GB-2009-COMMITTEE",
+        "NFL-2010-POST"
+      ],
+      "evidence_kind": "official_rule_anchor_and_dated_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "first_score_sudden_death",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2009,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf",
+        "https://www.packers.com/news/safety-at-forefront-overtime-not-up-for-change-at-owners-meeting-2404816",
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7"
+      ],
+      "source_ids": [
+        "NFL-2004-R16",
+        "GB-2009-COMMITTEE",
+        "NFL-2010-POST"
+      ],
+      "evidence_kind": "official_rule_anchor_and_dated_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "first_score_sudden_death",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2010,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2011,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2012,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2013,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2014,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2015,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2016,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2017,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2018,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2019,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2020,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2021,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/postseason-overtime-rules-09000d5d81d817d7",
+        "https://www.colts.com/news/super-season-kicks-off-9277377",
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-"
+      ],
+      "source_ids": [
+        "NFL-2010-POST",
+        "IND-2012-POST",
+        "NFL-2022-AMENDMENT"
+      ],
+      "evidence_kind": "official_dated_procedures_and_amendment_chain",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "modified_sudden_death_opening_touchdown_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2022,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://www.nfl.com/news/nfl-owners-approve-modified-overtime-rule-ensuring-possession-for-both-teams-in-",
+        "https://www.neworleanssaints.com/news/nfl-owners-approve-change-to-postseason-overtime-rules",
+        "https://operations.nfl.com/media/rwnj5upg/2023-rulebook_final.pdf"
+      ],
+      "source_ids": [
+        "NFL-2022-AMENDMENT",
+        "NO-2022-APPROVED",
+        "NFL-2023-R16"
+      ],
+      "evidence_kind": "official_approved_amendment_and_next_annual_rulebook",
+      "direct_annual_rulebook_verified": false,
+      "continuity_inference": true,
+      "mechanics_epoch": "both_teams_opportunity_to_possess_safety_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    },
+    {
+      "season": 2023,
+      "no_final_ties": true,
+      "reviewed": true,
+      "sources": [
+        "https://operations.nfl.com/media/rwnj5upg/2023-rulebook_final.pdf"
+      ],
+      "source_ids": [
+        "NFL-2023-R16"
+      ],
+      "evidence_kind": "official_annual_rulebook_indexed_text",
+      "direct_annual_rulebook_verified": true,
+      "continuity_inference": false,
+      "mechanics_epoch": "both_teams_opportunity_to_possess_safety_exception",
+      "scope": "ordinary completed postseason games; excludes cancellation/emergency administrative decisions"
+    }
+  ],
+  "pending_single_batch_downloads": [],
+  "downloads_performed_by_this_agent": false,
+  "archive_attempts_complete": true,
+  "archive_batch_receipt": {
+    "path": "data/research/rules/batch-receipt.json",
+    "sha256": "4d097395c643692ad2a5f590fc1d00056bb9d9a43bb05f402bc4075c943a566a"
+  },
+  "archive_results": [
+    {
+      "bytes": 1630809,
+      "fetched_ts": "2026-10-09T01:13:34.514275+00:00",
+      "filename": "nfl-rulebook-2004.pdf",
+      "final_url": "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf",
+      "purpose": "Archive verified pre-2010 Rule 16 anchor; no 2004 game data is needed.",
+      "requested_url": "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf",
+      "reused_verified_local_copy": false,
+      "sha256": "f7d56f2bda6376e8d9a23460c5273eca4636946a7c7184fad9939b2c2cc80d80",
+      "source_id": "NFL-2004-R16",
+      "status": "downloaded",
+      "url": "https://www.nflgsis.com/gsis/Documentation/StadiumGuides/OfficialRules2004.pdf"
+    },
+    {
+      "exception": "HTTP Error 404: Not Found",
+      "exception_type": "HTTPError",
+      "fetched_ts": "2026-10-09T01:13:35.268332+00:00",
+      "filename": "nfl-rulebook-2014.pdf",
+      "purpose": "Verify and archive an annual intermediate anchor inside the 2010–2021 epoch.",
+      "requested_url": "https://operations.nfl.com/images/content/rules/2014rulebook.pdf",
+      "source_id": "NFL-2014-R16",
+      "status": "failed",
+      "url": "https://operations.nfl.com/images/content/rules/2014rulebook.pdf"
+    },
+    {
+      "exception": "HTTP Error 404: Not Found",
+      "exception_type": "HTTPError",
+      "fetched_ts": "2026-10-09T01:13:36.048844+00:00",
+      "filename": "nfl-rulebook-2021.pdf",
+      "purpose": "Verify and archive last annual edition before the 2022 mechanics amendment.",
+      "requested_url": "https://operations.nfl.com/media/5427/2021-nfl-rulebook.pdf",
+      "source_id": "NFL-2021-R16",
+      "status": "failed",
+      "url": "https://operations.nfl.com/media/5427/2021-nfl-rulebook.pdf"
+    },
+    {
+      "exception": "HTTP Error 404: Not Found",
+      "exception_type": "HTTPError",
+      "fetched_ts": "2026-10-09T01:13:37.055228+00:00",
+      "filename": "nfl-rulebook-2023.pdf",
+      "purpose": "Archive the indexed 2023 Rule 16 continuation requirement and modern possession mechanics.",
+      "requested_url": "https://operations.nfl.com/media/rwnj5upg/2023-rulebook_final.pdf",
+      "source_id": "NFL-2023-R16",
+      "status": "failed",
+      "url": "https://operations.nfl.com/media/rwnj5upg/2023-rulebook_final.pdf"
+    }
+  ],
+  "archives_downloaded_by": "lead agent, one approved bounded batch"
+}

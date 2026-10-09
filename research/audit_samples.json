@@ -1,0 +1,331 @@
+{
+  "audit_date": "2026-10-08",
+  "schedule_commit": "abc9abcd357a64f023e0689d9849dcba3ac4dad1",
+  "schedule_commit_date": "2023-12-31T23:55:15Z",
+  "sample_limit": 256,
+  "results": [
+    {
+      "url": "https://raw.githubusercontent.com/nflverse/nfldata/abc9abcd357a64f023e0689d9849dcba3ac4dad1/data/games.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "e96ffc92f365c549dda48e22b23a55deb06aa4ff5df2ff846efd2668054b2f31",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "game_id": 0,
+        "season": 0,
+        "gameday": 0,
+        "gametime": 256,
+        "home_score": 0,
+        "away_score": 0,
+        "location": 0
+      },
+      "column_count": 46,
+      "observed_candidate_fields": [
+        "game_id",
+        "season",
+        "gameday",
+        "gametime",
+        "away_score",
+        "home_score",
+        "location"
+      ],
+      "sample_id": "schedule_1999_prefix",
+      "request_started_at": "2026-10-08T19:56:42.349108+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 1999
+    },
+    {
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2023.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "52fcb967437a02862365a198b8cd71c7d5bcbebdc4e33fc0c2b63b333d4b2d66",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "game_id": 0,
+        "play_id": 0,
+        "season": 0,
+        "home_score": 0,
+        "away_score": 0,
+        "location": 0,
+        "epa": 3,
+        "down": 37,
+        "posteam": 14,
+        "passer_player_id": 149
+      },
+      "column_count": 372,
+      "observed_candidate_fields": [
+        "play_id",
+        "game_id",
+        "posteam",
+        "down",
+        "epa",
+        "passer_player_id",
+        "season",
+        "away_score",
+        "home_score",
+        "location"
+      ],
+      "sample_id": "pbp_2023_prefix",
+      "request_started_at": "2026-10-08T19:56:42.349968+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 2023
+    },
+    {
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/ftn_charting/ftn_charting_2023.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "774a45cbcab2de1af7c55a85c4aaad3c1709f4b4a534a80355ab010b695b216d",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "nflverse_game_id": 0,
+        "nflverse_play_id": 0,
+        "season": 0,
+        "is_motion": 0,
+        "is_play_action": 0,
+        "read_thrown": 0,
+        "n_blitzers": 0,
+        "n_pass_rushers": 0,
+        "date_pulled": 0
+      },
+      "column_count": 29,
+      "observed_candidate_fields": [
+        "nflverse_game_id",
+        "season",
+        "nflverse_play_id",
+        "is_motion",
+        "is_play_action",
+        "read_thrown",
+        "n_blitzers",
+        "n_pass_rushers",
+        "date_pulled"
+      ],
+      "sample_id": "ftn_charting_2023_prefix",
+      "request_started_at": "2026-10-08T19:56:42.350370+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 2023
+    },
+    {
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_2023.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "4a3290e766b4a65ba5d443699a224156bbb72b7cc3f6767cbaf2b9711dee3d8b",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "nflverse_game_id": 0,
+        "play_id": 0,
+        "offense_personnel": 0,
+        "offense_formation": 54,
+        "defense_personnel": 0,
+        "was_pressure": 0,
+        "defense_man_zone_type": 128,
+        "defense_coverage_type": 128
+      },
+      "column_count": 26,
+      "observed_candidate_fields": [
+        "nflverse_game_id",
+        "play_id",
+        "offense_formation",
+        "offense_personnel",
+        "defense_personnel",
+        "was_pressure",
+        "defense_man_zone_type",
+        "defense_coverage_type"
+      ],
+      "sample_id": "participation_2023_prefix",
+      "request_started_at": "2026-10-08T19:56:42.351773+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 2023
+    },
+    {
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_2023.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "d9ab7db64eee3c770e02a5e043d6ffe6469ef903c3923477e29e519a3f14ef2b",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "season": 0,
+        "gsis_id": 0,
+        "report_status": 141,
+        "practice_status": 0,
+        "date_modified": 0
+      },
+      "column_count": 16,
+      "observed_candidate_fields": [
+        "season",
+        "gsis_id",
+        "report_status",
+        "practice_status",
+        "date_modified"
+      ],
+      "sample_id": "injuries_2023_prefix",
+      "request_started_at": "2026-10-08T19:56:42.722715+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 2023
+    },
+    {
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/depth_charts/depth_charts_2023.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "df4278a54637a9971972c57dde9256c1795a0eff22bff60efc7322683bfa25a5",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "season": 0,
+        "gsis_id": 0,
+        "depth_team": 0
+      },
+      "column_count": 15,
+      "observed_candidate_fields": [
+        "season",
+        "depth_team",
+        "gsis_id"
+      ],
+      "sample_id": "depth_charts_2023_prefix",
+      "request_started_at": "2026-10-08T19:56:42.758816+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 2023
+    },
+    {
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_2023.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "0fc279bc8ef90bce0ccc22e3493066d635299401f567943ce31ca426dca555d9",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "season": 0,
+        "gsis_id": 0
+      },
+      "column_count": 36,
+      "observed_candidate_fields": [
+        "season",
+        "gsis_id"
+      ],
+      "sample_id": "roster_2023_prefix",
+      "request_started_at": "2026-10-08T19:56:42.813940+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 2023
+    },
+    {
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2023.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "a2a38c656d9b126d3b49c956889d2b52191a0205a11c08b594bf8c2c78a032de",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "game_id": 0,
+        "season": 0,
+        "offense_pct": 0
+      },
+      "column_count": 16,
+      "observed_candidate_fields": [
+        "game_id",
+        "season",
+        "offense_pct"
+      ],
+      "sample_id": "snap_counts_2023_prefix",
+      "request_started_at": "2026-10-08T19:56:42.913957+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 2023
+    },
+    {
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/pfr_advstats/advstats_week_pass_2023.csv",
+      "status": 200,
+      "rows": 256,
+      "sample_sha256": "d632b23555292fbf88c6d67dfcd46dd89d5203e50af70ea05ae290cac1d6101d",
+      "sample_hash_definition": "UTF-8 json.dumps(rows,sort_keys=True,separators=(comma,colon)); first up to 256 complete records",
+      "missing": {
+        "game_id": 0,
+        "season": 0,
+        "times_pressured": 0
+      },
+      "column_count": 24,
+      "observed_candidate_fields": [
+        "game_id",
+        "season",
+        "times_pressured"
+      ],
+      "sample_id": "pfr_pass_2023_prefix",
+      "request_started_at": "2026-10-08T19:56:43.079197+00:00",
+      "selection": "first 256 complete CSV records of this artifact",
+      "season": 2023
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nflverse/nfldata/abc9abcd357a64f023e0689d9849dcba3ac4dad1/data/games.csv",
+      "status": 200,
+      "rows": 256,
+      "season": 2023,
+      "observed_seasons_while_seeking": [
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ],
+      "sample_sha256": "1bbaa2aef7f220f7e7fffaaf733e264e59fd83bb95e10a7f27eebf45bdeccb00",
+      "missing": {
+        "game_id": 0,
+        "gameday": 0,
+        "gametime": 0,
+        "home_score": 4,
+        "away_score": 4,
+        "location": 0,
+        "home_moneyline": 0,
+        "away_moneyline": 0,
+        "spread_line": 0,
+        "total_line": 0,
+        "temp": 127,
+        "wind": 127,
+        "home_qb_id": 8
+      },
+      "column_count": 46,
+      "observed_candidate_fields": [
+        "game_id",
+        "gameday",
+        "gametime",
+        "away_score",
+        "home_score",
+        "location",
+        "away_moneyline",
+        "home_moneyline",
+        "spread_line",
+        "total_line",
+        "temp",
+        "wind",
+        "home_qb_id"
+      ],
+      "sample_id": "schedule_2023_prefix",
+      "selection": "first 256 complete CSV records of season 2023",
+      "sample_processed_at": "2026-10-08T19:58:17.437093+00:00"
+    }
+  ],
+  "method": "HTTP streaming CSV; first 256 complete records per season-specific 2023 file; schedule first 256 overall and first 256 of 2023 from pinned 2023 commit. Missing means empty string, NA, NaN, null (or absent). Hash is sha256 of UTF-8 json.dumps(all sampled rows,sort_keys=True,separators=(comma,colon)); no raw sample retained. Prefixes are ordered and biased; not season completeness or point-in-time proof.",
+  "latest_recorded_request_started_at": "2026-10-08T19:56:43.079197+00:00",
+  "evidence_limits": {
+    "raw_records_retained": false,
+    "offline_recomputation_possible": false,
+    "full_artifact_hashes_available": false,
+    "full_season_completeness_verified": false,
+    "historical_publication_timing_proven": false,
+    "timestamp_semantics": "The first nine samples record request_started_at before HTTP acquisition; schedule_2023_prefix records sample_processed_at after reading/processing its bounded sample. Neither is an original historical publication timestamp. Exact HTTP response completion and first-publication times were not recorded.",
+    "hash_scope": "Parsed sample rows including all CSV columns, not raw response bytes. Counts and original sample hashes are preserved in this review."
+  }
+}

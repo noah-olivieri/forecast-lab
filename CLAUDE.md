@@ -42,27 +42,30 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   provenance columns and `inputs_stale` landed in cbe3677 (a golden test pins the v0 models).
 - **Done on `main`:** TB@DAL T-24h pilot forecast (`forecasts/2026-10-08/`, manual, horizon
   24h07m), portfolio site launch (88a93c4), `RESEARCH_PROTOCOL.md` pre-registered (358618f).
-- **Phase A in progress: automate the T-24h forecast for every NFL game.** Built on branch
-  `forecast-auto`, NOT yet merged or pushed: `jobs/forecast_t24.py` (`gate` + `run`),
-  `forecast.yml` (cron `11,26,41,56 * * * *`), `ci.yml` (pytest, ruff, forecasts/ append-only
-  guard), daily `kickoffs.yml` (`17 10 * * *`), `.github/scripts/push_forecasts.sh`.
-  Window per game is [K-24h, K-21h); the first successful run makes the forecast; a game with
-  none is MISSED (alert covers windows closed in the last 6h; scoring counts misses from
-  `kickoffs.json`). A Kalshi snapshot older than 30 min fails that game's run (retried next run).
-  `GO_LIVE` (one constant in `jobs/forecast_t24.py`) is 2026-10-09T00:15Z, the TB@DAL kickoff;
-  games with kickoff >= GO_LIVE + 24h are eligible. Nothing runs on a schedule until
-  `forecast.yml` is on `main`.
-- **Open issue:** GitHub's scheduler drops runs. Crons were moved off busy minutes (unverified
-  until an overnight). Backup: an external caller should fire `workflow_dispatch` for BOTH
-  `collect.yml` and `forecast.yml` (hourly at :41 for collect; cron-job.org, fine-grained token,
-  Actions read/write on this repo only). **Not set up yet; the user creates the account and
-  token.** Until confirmed, before a manual forecast run `gh workflow run collect.yml`, wait for
-  it, then `git fetch origin data`.
-- Next (revised roadmap, see RESEARCH_PROTOCOL.md): merge Phase A; Phase B minimal
-  auto-settlement (ordinary games settle automatically, odd cases flagged); Phase C/D scoring
-  (Brier primary, log loss secondary) on a labeled historical backtest plus the live sample;
-  Phase E encompassing test vs market; then feature research for nfl-feature-v1. Parked:
-  econ/M4, sportsbook ingestion, spreads, multi-sport, paper trading, site polish.
+- **Phase A workflow definitions are on `main`.** The available local Git refs
+  (`main`, `origin/main`, and `forecast-auto`) point to commit `1813021`, which contains
+  `jobs/forecast_t24.py` (`gate` + `run`), `forecast.yml` (cron `11,26,41,56 * * * *`),
+  `ci.yml` (pytest, ruff, forecasts/ append-only guard), daily `kickoffs.yml`
+  (`17 10 * * *`), and `.github/scripts/push_forecasts.sh`. GitHub Actions run
+  [37861409610](https://github.com/noah-olivieri/forecast-lab/actions/runs/37861409610)
+  confirms a scheduled trigger on that commit: the gate succeeded, while forecast and alert
+  jobs were skipped. This verifies scheduler activation, not an issued forecast. At that run's
+  23:47Z timestamp, the first eligible forecast window had not opened (GO_LIVE was 00:15Z);
+  end-to-end issuance remains unverified.
+  The window per game is [K-24h, K-21h); the first successful run makes the forecast; a game
+  with none is MISSED. A Kalshi snapshot older than 30 min fails that game's run (retried next
+  run). `GO_LIVE` is 2026-10-09T00:15Z; games with kickoff >= GO_LIVE + 24h are eligible.
+- **Open issue:** one successful scheduled gate run does not establish ongoing scheduler
+  reliability or a successful forecast. The external workflow-dispatch backup for BOTH
+  `collect.yml` and `forecast.yml` is not set up. The user creates any account and token.
+  Until reliability is confirmed, before a manual forecast run use `gh workflow run collect.yml`,
+  wait for it, then `git fetch origin data`.
+- Next (revised roadmap, see RESEARCH_PROTOCOL.md): verify an eligible forecast completes and
+  produces its receipt; then Phase B minimal auto-settlement (ordinary games settle automatically,
+  odd cases flagged); Phase C/D scoring (Brier primary, log loss secondary) on a labeled
+  historical backtest plus the live sample; Phase E encompassing test vs market; then feature
+  research for nfl-feature-v1. Parked: econ/M4, sportsbook ingestion, spreads, multi-sport,
+  paper trading, site polish.
 
 ## M1 decisions and caveats
 - Kalshi is the system of record; Polymarket US is a secondary cross-venue reference.

@@ -1,0 +1,60 @@
+{
+  "synthetic": true,
+  "historical_accuracy_claim": false,
+  "fixture": "Invented T0\u2013T3: 156 games in 2011, two games/year in 2012\u20132016",
+  "run_path": "data/research/runs/rf001-synthetic-example",
+  "input_manifest": "data/research/inputs/rf001-synthetic/manifest.json",
+  "prediction": {
+    "game_id": "outer-2015-1",
+    "season": 2015,
+    "as_of": "2015-08-31T17:00:00.000000Z",
+    "status": "forecast",
+    "actual_model": "opponent-score-v1",
+    "selected_setting": [
+      100,
+      null
+    ],
+    "training_games": 162,
+    "reservoir_size": 62,
+    "fitted_home_mean": 25.944616618979687,
+    "fitted_away_mean": 19.938149935722343,
+    "expected_home_points": 25.9326,
+    "expected_away_points": 19.9374,
+    "expected_margin": 5.9952,
+    "expected_total": 45.87,
+    "p_home": 0.8453,
+    "p_away": 0.1059,
+    "p_tie": 0.0488,
+    "p_share": 0.8697,
+    "seed": 7465345362759404808,
+    "score_one_draws": 0,
+    "one_below_six_opponent_draws": 0,
+    "samples_path": "samples/33db09a667125d539098fa8d1619b14ae0b802c459008a4387b9d76a51e2a373.npz",
+    "samples_hash": "1233d778414db43f537979efe9fc0179d3f6d1f5dbd3d0d36b933ee7f13b1c6f",
+    "bank_path": "banks/33db09a667125d539098fa8d1619b14ae0b802c459008a4387b9d76a51e2a373.json",
+    "fit_path": "fits/ee77e2f5cfdde73808f17c3138413ffe0de61ed424845eb12bb70a99c7d390f2.json"
+  },
+  "outer_counts": {
+    "attempted": 4,
+    "eligible": 4,
+    "predicted": 4,
+    "fallback": 0,
+    "missed": 0,
+    "excluded": 0,
+    "scored": 4,
+    "unlabelled": 0
+  },
+  "synthetic_only_metrics": {
+    "brier": 0.017619475625,
+    "margin_crps": 1.1385101874999999,
+    "total_crps": 1.2331573625
+  },
+  "prediction_hash": "9db7a320224deabb22c8dbb2652fe97166aa2aa3b21a68df1f714a8d7ff23355",
+  "splits_hash": "f07525003e4a8d5ed4c84cc8271daf58eca7338e456040d11ab06498f9ab5b37",
+  "model_code_hash": "7962b7774e4b05be0a13ac2a95b1a01bacfa919dc416e7e2d6d59c51ad1d8d94",
+  "limitations": [
+    "Tiny invented folds; no historical accuracy evidence",
+    "Nonnegative integer score approximation, not feasible scoring sequences or OT simulation",
+    "No real research input manifest or proven historical publication archive"
+  ]
+}
