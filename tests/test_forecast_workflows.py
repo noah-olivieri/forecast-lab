@@ -248,3 +248,37 @@ def test_guard_without_a_usable_base_checks_the_whole_history(tmp_path):
     commit_file(repo, "forecasts/a/one.csv", "edited\n", "edit")
     assert guard(repo, "0" * 40, "HEAD").returncode == 1
     assert guard(repo, "", "HEAD").returncode == 1
+
+
+# ---- ci.yml runs the guard over the whole history ------------------------------------------------
+
+
+def ci_guard_step():
+    steps = workflow("ci.yml")["jobs"]["test"]["steps"]
+    return next(s for s in steps if "check_forecasts_append_only.sh" in s.get("run", ""))
+
+
+def test_ci_guard_checks_whole_history_not_the_push_range():
+    wf = workflow("ci.yml")
+    checkout = next(s for s in wf["jobs"]["test"]["steps"] if "checkout" in s.get("uses", ""))
+    assert checkout["with"]["fetch-depth"] == 0  # the whole history must be present
+    step = ci_guard_step()
+    assert step["run"].strip() == '.github/scripts/check_forecasts_append_only.sh "" HEAD'
+    text = (WORKFLOWS / "ci.yml").read_text()
+    assert "github.event.before" not in text and "base.sha" not in text
+
+
+def test_ci_guard_command_catches_an_edit_outside_the_latest_push_range(tmp_path):
+    # A bot pushes with GITHUB_TOKEN (no CI run), editing a result; a later human push would
+    # check only <bot tip>..HEAD and miss it. The CI command must still fail.
+    repo, _ = history(tmp_path)
+    commit_file(repo, "results/2026/G.csv", "y\n1\n", "settle")
+    commit_file(repo, "results/2026/G.csv", "y\n0\n", "bot edit, no CI run")
+    bot_tip = git(repo, "rev-parse", "HEAD")
+    commit_file(repo, "src/x.py", "print()\n", "human push")
+    assert guard(repo, bot_tip, "HEAD").returncode == 0  # the old push-range check misses it
+    command = ci_guard_step()["run"].replace(".github/scripts/", f"{GUARD.parent}/")
+    r = subprocess.run(
+        ["bash", "-c", command], cwd=repo, capture_output=True, text=True, check=False
+    )
+    assert r.returncode == 1 and "results/2026/G.csv" in r.stdout

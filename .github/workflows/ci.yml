@@ -2,7 +2,9 @@ name: ci
 
 # Tests, lint, and a guard that forecasts/ and results/ stay append-only: no commit may modify or
 # delete an existing forecast or result file (adding new ones is fine). The forecast proof
-# (PLAN 7a) and the settled outcomes depend on it.
+# (PLAN 7a) and the settled outcomes depend on it. The guard checks the whole history of HEAD on
+# every run, not the push range: bot pushes made with GITHUB_TOKEN trigger no CI run, so a range
+# starting at the previous tip would never cover the bot's own commits.
 on:
   push:
   pull_request:
@@ -24,7 +26,5 @@ jobs:
       - run: uv sync --frozen
       - run: uv run pytest -q
       - run: uv run ruff check .
-      - name: forecasts/ and results/ are append-only
-        env:
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: .github/scripts/check_forecasts_append_only.sh "$BASE" HEAD
+      - name: forecasts/ and results/ are append-only (whole history)
+        run: .github/scripts/check_forecasts_append_only.sh "" HEAD
