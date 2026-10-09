@@ -19,7 +19,11 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest", "ruff"]
+dev = [
+    "jupyterlab>=4.6.4",
+    "pytest",
+    "ruff",
+]
 
 [build-system]
 requires = ["hatchling"]
