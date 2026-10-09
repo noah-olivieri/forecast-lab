@@ -607,3 +607,77 @@ pooled-bank approximation. This is reconstructed evaluation only; final schedule
 and score revisions do not establish historical publication or flex timing.
 Data-specific redistribution rights remain unresolved and the artifacts stay
 local and ignored. These limitations do not open or weaken the holdout lock.
+
+## RF-001 historical moneyline reference amendment (2026-10-08 America/Los_Angeles)
+
+**Status: approved definitions; committed before outer RF-001 results may be
+viewed. This does not authorize the historical backtest.** This narrowly scoped
+historical reference changes no RF-001 training input, feature, recipe, tuning,
+fold, comparison population, or registered metric. It does not amend
+`RESEARCH_PROTOCOL.md`; its prospective-only rule for the live test remains
+unchanged. Odds are evaluator-only and never training inputs, RF-001 features,
+or a substitute for a same-cutoff T−24h comparison. The required label is
+**“historical moneyline reference; timing and book unknown.”** Timing, bookmaker
+or aggregation, and settlement semantics are unknown limitations, not blockers
+for this exploratory reference. No market-superiority or strict historical
+point-in-time claim is admissible.
+
+**Source extraction and de-vig.** A future odds extractor must select rows by
+explicit season key, independent of source-file ordering, and write content-
+hashed season partitions with source and extraction provenance. The first
+development use is limited to 2006–2023; the extractor must not read 2024–2025
+outcome rows. For finite integer American odds `a` with `abs(a) >= 100`, derive
+raw implied probability `q = 100/(a+100)` for positive `a`, and
+`q = (-a)/((-a)+100)` for negative `a`; zero, missing, noninteger, or otherwise
+invalid values are unsupported. Primary proportional de-vig is
+`p_i = q_i / (q_home + q_away)`. The fixed secondary power sensitivity solves
+the unique `k > 0` for which `q_home**k + q_away**k = 1`, and reports
+`p_i = q_i**k`. It is unsupported for an invalid/missing pair, raw probabilities
+outside `(0,1)`, or failed root bracketing/convergence; no fallback value is
+substituted. No calibration or book weighting is fit.
+
+**Population and scoring.** The primary odds population is decisive completed
+outer games (2015–2023) with valid paired moneylines (`y=1` home win, `y=0` away
+win). Interpreting normalized two-way odds as a conditional decisive-game win
+probability is an explicit research assumption; excluding ties does not establish
+refund-on-tie settlement. Use the exact label **“historical moneyline reference;
+timing and book unknown.”** For RF-001 candidate and registered fallback rows,
+use the saved `p_cond = p_home / (p_home + p_away)`; a zero or nonfinite
+denominator is unsupported. Do not substitute `p_share` or `0.5`. Elo and
+home-rate supply scalar probabilities without separately identified tie probabilities; score
+those saved values unadjusted on the decisive subset and disclose that this is an
+approximation to a conditional probability. Do not invent tie probabilities or
+alter RF-001 to match the scalar forecasts. Constant `0.5` is exact under both
+interpretations. Use binary Brier and binary log loss with the 0/1 target on
+identical rows for each registered pair; keep
+these decisive-game results separate from all-game fractional-label metrics.
+The source has only home/away moneyline fields, so no three-way market branch is
+defined. Margin CRPS remains unsupported for the moneyline and scalar forecasts.
+
+The existing RF-001 Monte Carlo probability checks cover `p_home`, `p_away`,
+`p_tie`, and `p_share`, not the conditional ratio `p_cond`. Before filling
+conditional-probability cells, a future evaluator must add and pass a meaningful
+synthetic test and report a fixed-seed `p_cond` Monte Carlo convergence/error
+sensitivity using the registered draw recipe and independent sensitivity seed;
+do not search seeds or tune this diagnostic.
+
+**Comparisons, gates, and reporting.** Preserve all registered RF-001 pairwise
+comparison populations and inclusion of predeclared fallback predictions as
+primary. All-model complete-case tables and candidate-versus-fallback splits
+are descriptive. Keep football-backtest execution gates independent from this
+reference: unknown timing, book/aggregation, and settlement semantics are
+disclosed limitations, not blockers for the registered football-only run or this
+exploratory reference. The
+evaluator may be implemented later only if it follows these approved, committed
+definitions unchanged, passes meaningful synthetic tests, and is itself
+committed before closing-reference scores are computed. Any deviation requires
+a separate registered experiment and must not silently amend these definitions.
+The selection rules are fixed in advance; after a separately authorized
+evaluation, report realized valid-pair,
+decisive-game, tie-exclusion, paired-prediction and missingness counts. Those
+realized counts are descriptive reporting, not pre-run gates or grounds to
+change the registered population. Apply the existing paired week-block bootstrap
+and seed to admissible paired rows. Publish results regardless of direction.
+
+The amendment does not authorize a historical run or relax the locked 2024–2025
+holdout.
