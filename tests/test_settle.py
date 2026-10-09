@@ -292,6 +292,27 @@ def test_settle_uses_only_action_versions_from_collect_yml():
     assert workflow_uses("settle.yml") <= workflow_uses("collect.yml")
 
 
+def test_results_are_pushed_even_when_the_settle_step_flags_and_the_run_fails_after():
+    """A flagged run (exit 1) must still push its ordinary results, then fail.
+
+    continue-on-error keeps the job successful after exit 1, so the push step's implicit
+    success() holds; its condition must depend only on the written files, never on the settle
+    step's outcome. The failing step comes last and keys on that outcome.
+    """
+    steps = workflow("settle.yml")["jobs"]["settle"]["steps"]
+    names = [s.get("name") or s.get("run") or s.get("uses") for s in steps]
+    settle_i = next(i for i, s in enumerate(steps) if s.get("id") == "settle")
+    push_i = next(i for i, s in enumerate(steps) if "push_results.sh" in s.get("run", ""))
+    fail_i = len(steps) - 1
+    settle_step, push_step, fail_step = steps[settle_i], steps[push_i], steps[fail_i]
+    assert settle_i < push_i < fail_i, names
+    assert settle_step["continue-on-error"] is True
+    assert push_step["if"].replace(" ", "") == "steps.settle.outputs.files!=''"
+    assert "continue-on-error" not in push_step  # a failed push must fail the run
+    assert fail_step["if"].replace(" ", "") == "steps.settle.outcome=='failure'"
+    assert "exit 1" in fail_step["run"]
+
+
 # ---- push_results.sh ---------------------------------------------------------------------------
 
 NEW = "results/2026/2026_06_NYG_DAL.csv"
