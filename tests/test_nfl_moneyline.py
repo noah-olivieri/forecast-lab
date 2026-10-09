@@ -325,3 +325,67 @@ def test_pairwise_log_loss_reports_clipping_and_power_sensitivity(tmp_path):
     assert report["market"]["power_sensitivity"]["n"] == report["market"]["n"]
     assert report["models"]["rf001"]["monte_carlo_sensitivity"]["status"] == "scored"
     assert report["models"]["rf001"]["monte_carlo_sensitivity"]["draws"] == 20000
+
+
+def test_scalar_reports_disclose_the_conditional_probability_approximation(tmp_path):
+    odds_path, run_dir, _ = _make_saved_run(tmp_path / "run")
+    report = moneyline.evaluate_saved_run(run_dir, odds_path)
+    for model in ("elo", "home_rate"):
+        disclosure = report["models"][model]["probability_interpretation"]
+        assert "unadjusted" in disclosure
+        assert "approximation" in disclosure
+        assert "conditional decisive-game" in disclosure
+        assert "no separately identified tie probability" in disclosure
+
+
+@pytest.mark.parametrize(
+    ("home_count", "difference", "threshold", "flagged"),
+    [(7500, 0.25, 0.01399038105676658, True), (10000, 0.0, 0.001, False)],
+)
+def test_conditional_mc_uses_independent_seed_and_hand_checked_threshold(
+    tmp_path, home_count, difference, threshold, flagged
+):
+    from lab.backtest.score_artifacts import RecordStore
+
+    game_id, as_of = "invented-game", "2015-09-02T16:00:00.000000Z"
+    # Derive seeds from the documented SHA-256 contract, independently of
+    # stable_seed. sample_scores hashes the alternate run seed once more.
+    def seed_from_text(value):
+        return int.from_bytes(hashlib.sha256(value.encode()).digest()[:8], "big")
+
+    primary_seed = seed_from_text(f"20261008|{game_id}|{as_of}|distribution-v1")
+    alternate = seed_from_text(f"20261008|{game_id}|{as_of}|mc-sensitivity-v1")
+    expected_repeat_seed = seed_from_text(f"{alternate}|{game_id}|{as_of}|distribution-v1")
+    bank_path = RecordStore(tmp_path).bank(
+        [{"game_id": "prior", "kickoff": "2015-08-01T16:00:00Z", "residual": [0, 0]}]
+    )
+    # Repeat draws are deterministically all home wins. The saved primary draws
+    # deliberately differ to exercise the diagnostic's flagged branch.
+    samples = np.array([[21, 20]] * home_count + [[20, 21]] * (10000 - home_count))
+    path = tmp_path / "primary.npz"
+    np.savez_compressed(path, samples=samples)
+    prediction = {
+        "samples_path": path.name,
+        "samples_hash": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "bank_path": bank_path,
+        "p_home": home_count / 10000,
+        "p_away": (10000 - home_count) / 10000,
+        "p_tie": 0.0,
+        "fitted_home_mean": 21.0,
+        "fitted_away_mean": 20.0,
+        "seed": primary_seed,
+    }
+    result = moneyline._read_distribution(
+        tmp_path,
+        prediction,
+        {"game_id": game_id, "as_of": as_of, "run_seed": 20261008, "game_type": "REG"},
+    )
+    assert result["seed"] == expected_repeat_seed
+    assert result["seed"] != prediction["seed"]
+    assert result["base_decisive_draws"] == 10000
+    assert result["repeat_decisive_draws"] == 20000
+    assert result["repeat_p_cond"] == 1.0
+    assert result["difference"] == pytest.approx(difference)
+    # For .75 versus 1: 3*sqrt(.75*.25/10000 + 1*0/20000)+.001.
+    assert result["threshold"] == pytest.approx(threshold)
+    assert result["flagged"] is flagged

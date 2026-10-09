@@ -638,6 +638,11 @@ def evaluate_saved_run(run_dir, odds_manifest_path):
                 mc_rows.append({"game_id": game_id, **mc})
         model_score_maps[model] = scores
         aggregate = _score_summary([value["loss"] for value in scores.values()])
+        if model in ("elo", "home_rate"):
+            aggregate["probability_interpretation"] = (
+                "Saved scalar scored unadjusted as an approximation to the conditional decisive-game "
+                "win probability; no separately identified tie probability."
+            )
         aggregate.update(
             by_season={
                 str(year): _score_summary(
