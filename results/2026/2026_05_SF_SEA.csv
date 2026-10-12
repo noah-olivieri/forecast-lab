@@ -1,0 +1,2 @@
+game_id,home_team,away_team,home_score,away_score,y,source,fetched_at_utc
+2026_05_SF_SEA,SEA,SF,29,32,0,nflverse schedules (nflreadpy 0.1.5),2026-10-12T22:34:28Z
