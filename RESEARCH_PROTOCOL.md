@@ -45,4 +45,8 @@ Do model probabilities contain information beyond Kalshi / Polymarket US prices?
   change; they apply only to games after that change is committed.
 
 ## Changes
-(none yet)
+2026-10-12: Correction to section 2. It says T-24h is before injury reports and
+pre-game news are out. An audit of nflverse injury data for 2010-2023 found that
+final QB injury statuses were usually published one to four days before kickoff,
+so most were already public at T-24h. No definitions change. Details are in the
+DECISIONS.md entry dated 2026-10-11 on the research-foundation branch.
