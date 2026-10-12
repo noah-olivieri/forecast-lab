@@ -98,3 +98,76 @@ both ways (QB-002 wins 5 of 9 seasons), so the test could not separate them.
 Caveats: This is the third test on 2015-2023, so it is development evidence only. The
 run's wall-clock time (1h51) included the Mac sleeping; CPU time was about 25 minutes.
 Results are unaffected.
+
+## 2026-10-11: T-24h feasibility audit and frozen development rules
+
+My words: "I just want it to be a good prediction model."
+
+### Decisions
+
+1. Timing validity covers every feature, not just QB inputs. A test is "T-24h valid" only
+   if every input, including how it was built, was knowable at the forecast time. Tests
+   using actual starters are "starter-known, exploratory." Tests using model-based
+   metrics with undocumented training seasons are "exploratory."
+
+2. Expected starter rule (same for backtests and live):
+   - Start with the usual starter (QB-001 definition: most starts in the team's last 8
+     games, prior games only).
+   - If his final injury status is Out or Doubtful and was last modified before the
+     cutoff, the expected starter is the team's other QB with the most dropbacks in its
+     last 8 games. If there is none, use the rookie prior.
+   - If the status is missing, has no date_modified, or was modified after the cutoff,
+     the expected starter is the usual starter.
+   - Live: Thursday games, early Thanksgiving games, and any game whose cutoff comes
+     before the final report use the usual starter.
+
+3. Metrics for confirmatory tests are model-free only: ANY/A for QBs; yards per play,
+   yards-based success rate, sack rate and turnovers for teams. nflverse EPA, success
+   (defined as EPA > 0), CPOE, xpass, WP and vegas_wp are exploratory only.
+
+4. Data revisions: box-score stat corrections are disclosed, not disqualifying. Model
+   refits make a metric exploratory. Every run records a SHA-256 hash of each input file.
+
+5. Rookie prior is rolling: built only from QBs who debuted before the forecast season.
+   QBs whose first dropback in the data is in 1999 are excluded from the prior.
+
+6. Development budget: at most 3 tests, in this order: QB-003 (QB quality), team
+   efficiency, schedule/venue. Each is tested on top of the combination accepted so far,
+   and that comparison is frozen before the run.
+   - Screening is walk-forward: tune on seasons 2010 through s-1, predict season s, for
+     s = 2013 to 2023.
+   - Include a feature only if mean Brier improves by at least 0.0005 versus the current
+     best AND it is better in at least 6 of 11 seasons. Otherwise it is excluded as null.
+     Worse on average is excluded and reported as harmful.
+   - Two nulls in a row ends the budget. This is a budget limit, not proof that no
+     improvement exists.
+
+7. Final evaluation, pre-registered before the 2024-2025 holdout is opened:
+   - v1 versus frozen Elo. Pass means the paired Brier CI is entirely below 0.
+   - Encompassing test: fit market-only and market-plus-model logistic regressions on
+     development data only, then compare their held-out Brier and log loss on 2024-2025
+     with paired CIs. Historical moneyline timing is unknown, so this is exploratory.
+   - The report states whether the result is T-24h valid or starter-known.
+   - Pass: v1 becomes the candidate live model. Fail or inconclusive: v1 may run live as
+     experimental, and frozen Elo stays primary.
+   - Live deployment requires every input to exist at forecast time. The forecast job
+     saves its own timestamped copy of each input it uses.
+
+8. Corrections to earlier documents:
+   - RESEARCH_PROTOCOL.md section 2 says T-24h is before injury reports are out. That is
+     wrong for most games: final QB statuses were usually published 1 to 4 days before
+     kickoff. A dated note goes under Changes on main later. Definitions do not change.
+   - QB-001 and QB-002 are starter-known, exploratory results. Calling the actual-starter
+     lookahead "mild" was wrong: in TEN 2023 weeks 8-9 the starter was QB3 on the weekly
+     depth chart.
+
+### Review note (from Claude)
+
+Audit evidence (read-only, 2026-10-11): nflverse injury date_modified was checked for
+2010-2023 QB rows. 1,489 dated rows for 2010-2022 (2023 counted separately, all before
+the cutoff); 4 were modified after the cutoff and 4 had no date. 2009 has no dates and is
+excluded. Depth charts before 2025 have no dates, so the replacement QB comes from
+play-by-play instead. date_modified is the last edit, so a last edit before the cutoff
+shows the final status existed by then, if the source's timestamps are accurate. nflverse
+refreshes injuries too late for Thursday games live. Full output is in /tmp/forecast-audit/
+(not committed).
