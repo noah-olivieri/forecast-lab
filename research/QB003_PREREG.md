@@ -77,3 +77,17 @@ and SHA-256 hashes of every input file.
   disqualifying.
 - This is the first of at most 3 development tests. Screening is not confirmation; the
   2024-2025 holdout is.
+
+## Clarifications (2026-10-12, before any QB-003 code or results)
+The original text left four points undefined. They were settled before any code was
+written or any outcome data was looked at:
+1. Rookie prior data: play-by-play from 1999 onward is used only to find debuts and
+   first-100 dropbacks for the prior. QB quality windows stay as written.
+2. Who is a QB: a player listed at position QB on that season's nflverse roster. For the
+   prior, he must be listed as QB in his debut season. Roster files 1999-2023 are hashed
+   inputs.
+3. QBs with fewer than 100 dropbacks before the forecast season are included in the
+   prior with all the dropbacks they have, so the prior is not limited to QBs who kept
+   playing.
+4. Plays marked both pass_attempt and qb_scramble (the QB scrambled, then threw) count
+   as dropbacks. "Scrambles are not counted" means scramble runs.
