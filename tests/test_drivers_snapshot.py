@@ -425,3 +425,33 @@ def test_sha256_file(tmp_path):
         "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
     )
     assert ds.sha256_file(tmp_path / "missing") is None
+
+
+def test_write_snapshot_unserializable_meta_writes_nothing(tmp_path):
+    ex = ds.read_export(fake_export(tmp_path, [up_row()]))
+    with pytest.raises(TypeError):
+        ds.write_snapshot(tmp_path / "out", T, [], [], {"created_ts": T}, ex, None)
+    assert not ds.snapshot_dir(tmp_path / "out", T).exists()
+
+
+def test_write_snapshot_failure_after_mkdir_removes_the_directory(tmp_path, monkeypatch):
+    ex = ds.read_export(fake_export(tmp_path, [up_row()]))
+
+    def broken_copy(*args, **kwargs):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(ds.shutil, "copyfile", broken_copy)
+    with pytest.raises(OSError, match="disk full"):
+        ds.write_snapshot(tmp_path / "out", T, [], [], {}, ex, None)
+    assert not ds.snapshot_dir(tmp_path / "out", T).exists()
+
+
+def test_kickoff_source_disagrees_when_kickoffs_json_is_later(tmp_path):
+    later = {"2026_06_HOU_JAX": datetime(2026, 10, 18, 14, 30, tzinfo=UTC)}  # schedule 13:30Z
+    ex = ds.read_export(fake_export(tmp_path, [up_row()]))
+    k = ds.schedule_kickoffs(ex.upcoming)
+    eff, dis = ds.effective_kickoffs(k, later)
+    disagree = {d["game_id"] for d in dis}
+    (r,), _, _ = ds.build_rows(ex, k, eff, [], T, "abc123", disagree=disagree)
+    assert r["kickoff_source_disagrees"] is True
+

@@ -237,6 +237,8 @@ def build_rows(
     quotes: list[dict],
     created_ts: datetime,
     drivers_sha: str,
+    *,
+    disagree: frozenset[str] | set[str] = frozenset(),
 ) -> tuple[list[dict], list[dict], list[str]]:
     """One row per game still before kickoff; started or unpredicted games go to `excluded`."""
     rows, excluded, warnings = [], [], []
@@ -254,7 +256,7 @@ def build_rows(
         rows.append({
             "game_id": game_id, "season": r["season"], "week": r["week"],
             "home_team": r["home_team"], "away_team": r["away_team"], "kickoff_ts": kickoff,
-            "kickoff_source_disagrees": effective[game_id] != kickoff,
+            "kickoff_source_disagrees": game_id in disagree,
             "game_day_et": game_day.isoformat(), "same_day": game_day == capture_day,
             "created_ts": created_ts,
             "minutes_to_kickoff": int((kickoff - created_ts).total_seconds() // 60),
@@ -299,21 +301,32 @@ def write_snapshot(
     export: Export,
     schedule_rds: Path | None,
 ) -> Path:
-    """Create the snapshot directory exclusively and write every file into it."""
+    """Create the snapshot directory exclusively and write every file into it.
+
+    meta.json is serialized before anything is created, and any failure after the exclusive
+    mkdir removes the directory (this run created it), so no half-written snapshot is left.
+    meta.json is written last.
+    """
+    meta_text = json.dumps(meta, indent=1, sort_keys=True) + "\n"
     d = snapshot_dir(out_root, created_ts)
     d.parent.mkdir(parents=True, exist_ok=True)
     try:
         d.mkdir()
     except FileExistsError:
         raise SnapshotRefused(f"{d} already exists; snapshots are never overwritten") from None
-    _write_csv(d / "predictions.csv", PRED_COLUMNS, rows)
-    _write_csv(d / "excluded.csv", EXCLUDED_COLUMNS, excluded)
-    inputs = d / "inputs"
-    inputs.mkdir()
-    shutil.copyfile(export.dir / "upcoming.csv", inputs / "upcoming.csv")
-    if export.mode == "full":
-        shutil.copyfile(export.dir / "features.csv", inputs / "features.csv")
-    if schedule_rds is not None and schedule_rds.is_file():
-        shutil.copyfile(schedule_rds, inputs / schedule_rds.name)
-    (d / "meta.json").write_text(json.dumps(meta, indent=1, sort_keys=True) + "\n")
+    try:
+        _write_csv(d / "predictions.csv", PRED_COLUMNS, rows)
+        _write_csv(d / "excluded.csv", EXCLUDED_COLUMNS, excluded)
+        inputs = d / "inputs"
+        inputs.mkdir()
+        shutil.copyfile(export.dir / "upcoming.csv", inputs / "upcoming.csv")
+        if export.mode == "full":
+            shutil.copyfile(export.dir / "features.csv", inputs / "features.csv")
+        if schedule_rds is not None and schedule_rds.is_file():
+            shutil.copyfile(schedule_rds, inputs / schedule_rds.name)
+        with (d / "meta.json").open("x") as f:
+            f.write(meta_text)
+    except BaseException:
+        shutil.rmtree(d, ignore_errors=True)
+        raise
     return d
