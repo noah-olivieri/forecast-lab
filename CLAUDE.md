@@ -75,8 +75,8 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   On game day, `Rscript run.R` in a clean nfl-drivers (results are
   stamped with its SHA), then `uv run python jobs/snapshot_drivers.py` here (both repos clean;
   results and schedule <= 6h old). The schedule's 6h clock starts when `run.R` starts (it
-  re-downloads the schedule first), and the last full run took about 4h50m, so snapshot soon
-  after `run.R` finishes. Commit the previous snapshot before rerunning (a staged but
+  re-downloads the schedule first); a full run takes about 14 minutes (measured 2026-10-16), so
+  snapshot soon after `run.R` finishes and keep the Mac awake during the run. Commit the previous snapshot before rerunning (a staged but
   uncommitted one is refused). Push before the first kickoff it covers; the counting rule is in
   the spec.
 
