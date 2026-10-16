@@ -10,13 +10,15 @@ is written; a snapshot directory is created exclusively and never overwritten.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
+import shutil
 import subprocess
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from lab.forecasts import NICKNAMES, _tickers, flip_quote
+from lab.forecasts import NICKNAMES, _fmt, _tickers, flip_quote
 from lab.ingest.nflverse import ET, kickoff_dt
 
 MODEL = "full_qb_ridge"
@@ -267,3 +269,51 @@ def build_rows(
 
 def no_quotes_at_all(rows: list[dict]) -> bool:
     return bool(rows) and all(r["status"] == "no_quotes" for r in rows)
+
+
+def snapshot_dir(out_root: Path, created_ts: datetime) -> Path:
+    et_day = created_ts.astimezone(ET).strftime("%Y-%m-%d")
+    return out_root / et_day / f"{created_ts.astimezone(UTC):%Y-%m-%dT%H-%M-%S}Z"
+
+
+def sha256_file(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _write_csv(path: Path, columns: list[str], rows: list[dict]) -> None:
+    with path.open("x", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(columns)
+        for r in rows:
+            w.writerow([_fmt(r.get(c)) for c in columns])
+
+
+def write_snapshot(
+    out_root: Path,
+    created_ts: datetime,
+    rows: list[dict],
+    excluded: list[dict],
+    meta: dict,
+    export: Export,
+    schedule_rds: Path | None,
+) -> Path:
+    """Create the snapshot directory exclusively and write every file into it."""
+    d = snapshot_dir(out_root, created_ts)
+    d.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        d.mkdir()
+    except FileExistsError:
+        raise SnapshotRefused(f"{d} already exists; snapshots are never overwritten") from None
+    _write_csv(d / "predictions.csv", PRED_COLUMNS, rows)
+    _write_csv(d / "excluded.csv", EXCLUDED_COLUMNS, excluded)
+    inputs = d / "inputs"
+    inputs.mkdir()
+    shutil.copyfile(export.dir / "upcoming.csv", inputs / "upcoming.csv")
+    if export.mode == "full":
+        shutil.copyfile(export.dir / "features.csv", inputs / "features.csv")
+    if schedule_rds is not None and schedule_rds.is_file():
+        shutil.copyfile(schedule_rds, inputs / schedule_rds.name)
+    (d / "meta.json").write_text(json.dumps(meta, indent=1, sort_keys=True) + "\n")
+    return d

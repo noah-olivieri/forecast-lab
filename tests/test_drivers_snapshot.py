@@ -1,5 +1,6 @@
 """Pure logic of the NFL Drivers weekly snapshot (spec 2026-10-15). No network."""
 
+import csv
 import json
 import os
 import shutil
@@ -376,3 +377,51 @@ def test_rows_are_sorted_by_kickoff_and_cover_every_column(tmp_path):
     rows, _, _ = rows_for(tmp_path, up, [])
     assert [r["game_id"] for r in rows] == ["2026_06_HOU_JAX", "2026_06_DAL_GB"]
     assert set(rows[0]) == set(ds.PRED_COLUMNS)
+def test_snapshot_dir_is_dated_in_eastern_time(tmp_path):
+    late = datetime(2026, 10, 18, 3, 30, 5, tzinfo=UTC)  # 23:30 ET on Oct 17
+    assert ds.snapshot_dir(tmp_path, late) == tmp_path / "2026-10-17" / "2026-10-18T03-30-05Z"
+
+
+def write(tmp_path, features=False, created=T):
+    ex = ds.read_export(fake_export(tmp_path, [up_row()], features=features))
+    sched = tmp_path / "schedules_2026.rds"
+    sched.write_bytes(b"rds-bytes")
+    rows, excluded, _ = rows_for(tmp_path / "r", [up_row()], [])
+    return ds.write_snapshot(tmp_path / "out", created, rows, excluded, {"mode": ex.mode}, ex, sched)
+
+
+def test_write_snapshot_writes_every_file(tmp_path):
+    d = write(tmp_path, features=True)
+    assert sorted(p.relative_to(d).as_posix() for p in d.rglob("*") if p.is_file()) == [
+        "excluded.csv", "inputs/features.csv", "inputs/schedules_2026.rds",
+        "inputs/upcoming.csv", "meta.json", "predictions.csv",
+    ]  # fmt: skip
+    with (d / "predictions.csv").open(newline="") as f:
+        (row,) = list(csv.DictReader(f))
+    assert list(row) == ds.PRED_COLUMNS
+    assert row["kickoff_ts"] == "2026-10-18T13:30:00Z" and row["kalshi_yes_bid"] == ""
+    assert (d / "inputs/schedules_2026.rds").read_bytes() == b"rds-bytes"
+    assert json.loads((d / "meta.json").read_text()) == {"mode": "full"}
+
+
+def test_write_snapshot_provenance_only_has_no_features(tmp_path):
+    d = write(tmp_path)
+    assert not (d / "inputs/features.csv").exists()
+
+
+def test_write_snapshot_never_overwrites(tmp_path):
+    d = write(tmp_path)
+    before = (d / "predictions.csv").read_bytes()
+    ex = ds.read_export(tmp_path / "export")
+    with pytest.raises(ds.SnapshotRefused, match="already exists"):
+        ds.write_snapshot(tmp_path / "out", T, [], [], {}, ex, None)
+    assert (d / "predictions.csv").read_bytes() == before
+
+
+def test_sha256_file(tmp_path):
+    p = tmp_path / "x"
+    p.write_bytes(b"abc")
+    assert ds.sha256_file(p) == (
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    )
+    assert ds.sha256_file(tmp_path / "missing") is None
