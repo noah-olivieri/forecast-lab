@@ -11,9 +11,12 @@ from __future__ import annotations
 
 import csv
 import json
+import subprocess
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+
+from lab.ingest.nflverse import kickoff_dt
 
 MODEL = "full_qb_ridge"
 
@@ -54,3 +57,83 @@ def read_export(export_dir: Path) -> Export:
         export_dir, rows, _utc(meta.get("created")), _utc(meta.get("schedule_downloaded")),
         meta.get("upcoming_dropped"),
     )  # fmt: skip
+
+
+FRESHNESS = timedelta(hours=6)
+
+
+def iso_z(ts: datetime) -> str:
+    return ts.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _git(repo: Path, *args: str) -> str:
+    """Raw stdout (not stripped: porcelain lines start with a status column that may be a space)."""
+    return subprocess.run(
+        ["git", *args], cwd=repo, capture_output=True, text=True, check=True
+    ).stdout
+
+
+def clean_head(repo: Path, allow_prefix: str | None = None) -> str:
+    """HEAD's SHA; refuses if anything outside `allow_prefix` is modified or untracked."""
+    out = _git(repo, "status", "--porcelain=v1", "--untracked-files=all")
+    dirty = [
+        line[3:] for line in out.splitlines()
+        if line and not (allow_prefix and line[3:].startswith(allow_prefix))
+    ]  # fmt: skip
+    if dirty:
+        raise SnapshotRefused(f"{repo}: uncommitted changes: {', '.join(dirty[:5])}")
+    return _git(repo, "rev-parse", "HEAD").strip()
+
+
+def head_commit_time(repo: Path) -> datetime:
+    return datetime.fromisoformat(_git(repo, "show", "-s", "--format=%cI", "HEAD").strip())
+
+
+def check_results_after_commit(results_created: datetime | None, commit_time: datetime) -> None:
+    if results_created is None or results_created < commit_time:
+        shown = "missing" if results_created is None else iso_z(results_created)
+        raise SnapshotRefused(
+            f"results$created ({shown}) is before nfl-drivers HEAD's commit time "
+            f"{iso_z(commit_time)}; rerun `Rscript run.R` on this commit"
+        )
+
+
+def check_freshness(export: Export, created_ts: datetime) -> None:
+    for name, ts in (
+        ("results$created", export.results_created),
+        ("schedule_downloaded", export.schedule_downloaded),
+    ):
+        if ts is None:
+            raise SnapshotRefused(f"{name} is missing; freshness cannot be checked")
+        if ts > created_ts:
+            raise SnapshotRefused(f"{name} {iso_z(ts)} is after capture {iso_z(created_ts)}")
+        if created_ts - ts > FRESHNESS:
+            raise SnapshotRefused(
+                f"{name} {iso_z(ts)} is more than {FRESHNESS} before capture {iso_z(created_ts)}"
+            )
+
+
+def schedule_kickoffs(rows: list[dict[str, str]]) -> dict[str, datetime]:
+    """Kickoff per game from the schedule the model used; any missing or bad time refuses."""
+    out, bad = {}, []
+    for r in rows:
+        try:
+            out[r["game_id"]] = kickoff_dt(r["gameday"], r["gametime"])
+        except (KeyError, TypeError, ValueError):
+            bad.append(r.get("game_id") or "?")
+    if bad:
+        raise SnapshotRefused("no usable kickoff time for: " + ", ".join(bad))
+    return out
+
+
+def effective_kickoffs(
+    schedule: dict[str, datetime], config: dict[str, datetime]
+) -> tuple[dict[str, datetime], list[dict[str, str]]]:
+    """The earlier of the schedule and config/kickoffs.json times, plus every disagreement."""
+    eff, disagreements = {}, []
+    for game_id, k in schedule.items():
+        c = config.get(game_id)
+        if c is not None and c != k:
+            disagreements.append({"game_id": game_id, "schedule": iso_z(k), "kickoffs_json": iso_z(c)})
+        eff[game_id] = k if c is None else min(k, c)
+    return eff, disagreements
