@@ -38,6 +38,8 @@ class Export:
     results_created: datetime | None
     schedule_downloaded: datetime | None
     upcoming_dropped: int | None
+    code_sha: str | None = None  # git HEAD when run.R ran (nfl-drivers code_state())
+    code_dirty: bool | None = None
 
     @property
     def mode(self) -> str:
@@ -55,7 +57,7 @@ def read_export(export_dir: Path) -> Export:
         raise SnapshotRefused(f"no {MODEL} rows in results$upcoming")
     return Export(
         export_dir, rows, _utc(meta.get("created")), _utc(meta.get("schedule_downloaded")),
-        meta.get("upcoming_dropped"),
+        meta.get("upcoming_dropped"), meta.get("code_sha"), meta.get("code_dirty"),
     )  # fmt: skip
 
 
@@ -108,6 +110,18 @@ def check_results_after_commit(results_created: datetime | None, commit_time: da
             f"results$created ({shown}) is before nfl-drivers HEAD's commit time "
             f"{iso_z(commit_time)}; rerun `Rscript run.R` on this commit"
         )
+
+
+def check_results_code(export: Export, drivers_sha: str) -> None:
+    """results.rds must come from the checked-out nfl-drivers commit, run on a clean tree."""
+    if export.code_sha is None:
+        raise SnapshotRefused("results.rds has no code SHA; rerun `Rscript run.R` on this commit")
+    if export.code_sha != drivers_sha:
+        raise SnapshotRefused(
+            f"results.rds came from nfl-drivers {export.code_sha}, but HEAD is {drivers_sha}"
+        )
+    if export.code_dirty is not False:
+        raise SnapshotRefused("results.rds came from a tree with uncommitted changes (or unknown)")
 
 
 def check_freshness(export: Export, created_ts: datetime) -> None:

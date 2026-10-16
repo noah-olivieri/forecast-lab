@@ -73,8 +73,11 @@ from `src/lab/forecasts.py`; `to_kickoff_utc` from `src/lab/ingest/nflverse.py`.
    - forecast-lab: `git status --porcelain` is empty except for paths under
      `drivers_snapshots/` (outputs, not code). Record HEAD's SHA. This makes the recorded SHA
      describe the code that ran.
-   - `results$created` is at or after nfl-drivers HEAD's commit time, so the results came
-     from that code.
+   - `results$created` is at or after nfl-drivers HEAD's commit time.
+   - `results$code_sha` (HEAD when `run.R` ran, recorded by nfl-drivers `code_state()`) equals
+     HEAD now, and `results$code_dirty` is FALSE. This is what ties the results to the code;
+     the commit-time check alone cannot (amended 2026-10-16 after the Task 5 review, user's
+     choice). results.rds without these fields is refused.
 2. **Export**: run `Rscript jobs/export_drivers.R <results.rds> <tmpdir>`. A nonzero exit,
    missing output, or zero `full_qb_ridge` rows is a refusal. Mode is `full` when
    `features.csv` was produced, else `provenance_only`.

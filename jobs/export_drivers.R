@@ -25,5 +25,8 @@ if (!is.null(r$upcoming_features)) {
 }
 meta <- list(created = iso(r$created), schedule_downloaded = iso(r$schedule_downloaded),
              upcoming_dropped = if (is.null(r$upcoming_dropped)) NA else as.integer(r$upcoming_dropped),
-             n_rows = nrow(up))
+             n_rows = nrow(up),
+             # absent in results.rds written before nfl-drivers recorded them -> null
+             code_sha = if (is.null(r$code_sha)) NA else r$code_sha,
+             code_dirty = if (is.null(r$code_dirty)) NA else r$code_dirty)
 writeLines(jsonlite::toJSON(meta, auto_unbox = TRUE, na = "null"), file.path(out, "meta.json"))

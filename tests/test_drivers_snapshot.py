@@ -32,7 +32,8 @@ def up_row(game_id="2026_06_HOU_JAX", gameday="2026-10-18", gametime="09:30", aw
 
 
 def fake_export(tmp_path, rows, *, created="2026-10-18T10:00:00Z",
-                downloaded="2026-10-18T09:00:00Z", dropped=0, features=False):  # fmt: skip
+                downloaded="2026-10-18T09:00:00Z", dropped=0, features=False,
+                code_sha="abc123", code_dirty=False):  # fmt: skip
     d = tmp_path / "export"
     d.mkdir(parents=True)
     lines = [",".join(UP_COLS)] + [",".join(r[c] for c in UP_COLS) for r in rows]
@@ -40,7 +41,8 @@ def fake_export(tmp_path, rows, *, created="2026-10-18T10:00:00Z",
     if features:
         (d / "features.csv").write_text("game_id,season,week,weather_imputed\nx,2026,6,0\n")
     meta = {"created": created, "schedule_downloaded": downloaded,
-            "upcoming_dropped": dropped, "n_rows": len(rows)}  # fmt: skip
+            "upcoming_dropped": dropped, "n_rows": len(rows),
+            "code_sha": code_sha, "code_dirty": code_dirty}  # fmt: skip
     (d / "meta.json").write_text(json.dumps(meta))
     return d
 
@@ -85,7 +87,7 @@ up <- data.frame(model = c("full_qb_ridge", "base"), game_id = "2026_06_HOU_JAX"
   home_qb_name = "Trevor Lawrence", spread = 2.5, pred_margin = 5.5, pred_win = c(0.68, 0.6))
 r <- list(created = as.POSIXct("2026-10-18 10:00:00", tz = "UTC"),
   schedule_downloaded = as.POSIXct("2026-10-18 02:00:00", tz = "America/Los_Angeles"),
-  upcoming_dropped = 1L, upcoming = up)
+  upcoming_dropped = 1L, upcoming = up, code_sha = "abc123", code_dirty = FALSE)
 if (args[2] == "full") r$upcoming_features <- data.frame(game_id = "2026_06_HOU_JAX",
   season = 2026L, week = 6L, home = 1, weather_imputed = 1)
 saveRDS(r, args[1])
@@ -106,6 +108,7 @@ def test_real_r_export_round_trip(tmp_path, mode):
     assert ex.results_created == datetime(2026, 10, 18, 10, 0, tzinfo=UTC)
     assert ex.schedule_downloaded == datetime(2026, 10, 18, 9, 0, tzinfo=UTC)  # PDT -> UTC
     assert ex.upcoming_dropped == 1
+    assert ex.code_sha == "abc123" and ex.code_dirty is False
 
 
 @pytest.mark.skipif(RSCRIPT is None, reason="Rscript not installed")
@@ -202,6 +205,20 @@ def test_results_must_postdate_the_drivers_commit(tmp_path):
         ds.check_results_after_commit(commit_time - timedelta(seconds=1), commit_time)
     with pytest.raises(ds.SnapshotRefused):
         ds.check_results_after_commit(None, commit_time)
+
+
+def test_results_code_must_be_head_and_clean(tmp_path):
+    ds.check_results_code(ds.read_export(fake_export(tmp_path, [up_row()])), "abc123")
+
+
+@pytest.mark.parametrize("sha,dirty,match", [
+    ("other", False, "other"), ("abc123", True, "uncommitted"),
+    (None, False, "no code SHA"), ("abc123", None, "uncommitted"),
+])  # fmt: skip
+def test_results_code_refuses_other_dirty_or_unknown_code(tmp_path, sha, dirty, match):
+    ex = ds.read_export(fake_export(tmp_path, [up_row()], code_sha=sha, code_dirty=dirty))
+    with pytest.raises(ds.SnapshotRefused, match=match):
+        ds.check_results_code(ex, "abc123")
 
 
 def ex_with(tmp_path, created, downloaded):
