@@ -340,7 +340,7 @@ def test_duplicate_ticker_rows_are_missing_with_a_warning(tmp_path):  # Review F
 def test_unmappable_polymarket_side_is_missing_with_a_warning(tmp_path):
     q = [quote("polymarket_us", P_HOU_JAX, 0.6, 0.7, subtitle="Draw")]
     (r,), _, warnings = rows_for(tmp_path, [up_row()], q)
-    assert r["poly_yes_bid"] is None and "Draw" in warnings[0]
+    assert r["poly_yes_bid"] is None and any("Draw" in w for w in warnings)
 
 
 def test_started_game_is_excluded_at_the_boundary(tmp_path):
@@ -454,4 +454,20 @@ def test_kickoff_source_disagrees_when_kickoffs_json_is_later(tmp_path):
     disagree = {d["game_id"] for d in dis}
     (r,), _, _ = ds.build_rows(ex, k, eff, [], T, "abc123", disagree=disagree)
     assert r["kickoff_source_disagrees"] is True
+
+
+def test_polymarket_slug_uses_lar_for_the_rams(tmp_path):  # final review #1
+    up = [up_row(game_id="2026_06_ARI_LA", away="ARI", home="LA", gametime="16:05")]
+    q = [quote("kalshi", "KXNFLGAME-26OCT18ARILAR-LAR", 0.7, 0.72),
+         quote("polymarket_us", "aec-nfl-ari-lar-2026-10-18", 0.7, 0.73, subtitle="Rams")]
+    (r,), _, warnings = rows_for(tmp_path, up, q)
+    assert r["poly_ticker"] == "aec-nfl-ari-lar-2026-10-18" and r["poly_yes_bid"] == 0.7
+    assert r["kalshi_yes_bid"] == 0.7 and warnings == []
+
+
+def test_a_missing_quote_is_warned_not_silent(tmp_path):
+    (r,), _, warnings = rows_for(tmp_path, [up_row()], [])
+    assert r["status"] == "no_quotes"
+    assert any("no kalshi quote" in w and K_HOU_JAX in w for w in warnings)
+    assert any("no polymarket_us quote" in w and P_HOU_JAX in w for w in warnings)
 

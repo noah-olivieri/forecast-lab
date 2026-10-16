@@ -188,12 +188,22 @@ def _num(text: str | None) -> float | None:
     return float(text) if text not in (None, "", "NA") else None
 
 
+# Polymarket US slugs use nflverse codes lowercased, except the Rams (seen in the data branch,
+# 2026-10-16). lab.forecasts._tickers is left alone: the T-24h job owns it.
+_POLY_CODE = {"LA": "lar"}
+
+
+def _poly_code(team: str) -> str:
+    return _POLY_CODE.get(team, team.lower())
+
+
 def _pick(quotes, venue, ticker, created_ts, game_id, warnings) -> dict | None:
     hits = [q for q in quotes if q["venue"] == venue and q["market_ticker"] == ticker]
     if len(hits) > 1:
         warnings.append(f"{game_id}: {len(hits)} {venue} rows for {ticker}; treated as missing")
         return None
     if not hits:
+        warnings.append(f"{game_id}: no {venue} quote for {ticker}")
         return None
     q = hits[0]
     if q["ts_utc"] > created_ts or created_ts - q["ts_utc"] > QUOTE_MAX_AGE:
@@ -204,7 +214,9 @@ def _pick(quotes, venue, ticker, created_ts, game_id, warnings) -> dict | None:
 
 def _quote_fields(r, kickoff, quotes, created_ts, warnings) -> dict:
     game_id, home, away = r["game_id"], r["home_team"], r["away_team"]
-    k_ticker, p_ticker = _tickers(away, home, kickoff.astimezone(ET))
+    game_et = kickoff.astimezone(ET)
+    k_ticker, _ = _tickers(away, home, game_et)
+    p_ticker = f"aec-nfl-{_poly_code(away)}-{_poly_code(home)}-{game_et:%Y-%m-%d}"
     k = _pick(quotes, KALSHI, k_ticker, created_ts, game_id, warnings)
     p = _pick(quotes, POLYMARKET, p_ticker, created_ts, game_id, warnings)
     flipped = None
