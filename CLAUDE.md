@@ -32,6 +32,9 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   written only by Actions. `data/` locally is gitignored (DuckDB + raw).
 - `results/<season>/<game_id>.csv`: settled outcomes, written only by the `settle` workflow
   (`jobs/settle.py`); append-only like `forecasts/`.
+- `drivers_snapshots/<ET date>/<UTC time>Z/`: NFL Drivers weekly snapshots (`jobs/snapshot_drivers.py`,
+  spec `docs/superpowers/specs/2026-10-15-drivers-weekly-snapshot-design.md`). Written locally,
+  committed and pushed by the user; append-only like `forecasts/` (`ci.yml` guard).
 - `src/lab/ingest/{common,kalshi,polymarket_us}.py`, `jobs/snapshot_markets.py`,
   `jobs/in_window.py` (collector gate), `jobs/gapcheck.py`, `jobs/compact_weekly.py`.
 - Tracked markets live in `config/markets.yaml`.
@@ -67,6 +70,11 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   (Brier primary, log loss secondary) on a labeled historical backtest plus the live sample;
   Phase E encompassing test vs market; then feature research for nfl-feature-v1. Parked:
   econ/M4, sportsbook ingestion, spreads, multi-sport, paper trading, site polish.
+- **NFL Drivers snapshot:** on game day, `Rscript run.R` in a clean nfl-drivers (results are
+  stamped with its SHA), then `uv run python jobs/snapshot_drivers.py` here (both repos clean;
+  results and schedule <= 6h old). Commit the previous snapshot before rerunning (a staged but
+  uncommitted one is refused). Push before the first kickoff it covers; the counting rule is in
+  the spec.
 
 ## M1 decisions and caveats
 - Kalshi is the system of record; Polymarket US is a secondary cross-venue reference.
