@@ -1,0 +1,2 @@
+game_id,home_team,away_team,home_score,away_score,y,source,fetched_at_utc
+2026_06_SEA_DEN,DEN,SEA,17,14,1,nflverse schedules (nflreadpy 0.1.5),2026-10-16T18:58:53Z
