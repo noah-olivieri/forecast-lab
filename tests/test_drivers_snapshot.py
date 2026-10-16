@@ -273,3 +273,106 @@ def test_effective_kickoffs_take_the_earlier_and_record_disagreements():
     assert eff == {"g1": a, "g2": b - timedelta(hours=1), "g3": a}
     assert dis == [{"game_id": "g2", "schedule": "2026-10-18T20:25:00Z",
                     "kickoffs_json": "2026-10-18T19:25:00Z"}]  # fmt: skip
+def quote(venue, ticker, bid, ask, ts=T - timedelta(seconds=30), subtitle=None, size=None):
+    return {"venue": venue, "market_ticker": ticker, "ts_utc": ts, "subtitle": subtitle,
+            "yes_bid": bid, "yes_ask": ask, "yes_bid_size": size, "yes_ask_size": size}  # fmt: skip
+
+
+K_HOU_JAX = "KXNFLGAME-26OCT18HOUJAC-JAC"  # Review Focus 3: JAX -> JAC on Kalshi
+P_HOU_JAX = "aec-nfl-hou-jax-2026-10-18"
+
+
+def rows_for(tmp_path, up, quotes, created=T, config=None):
+    ex = ds.read_export(fake_export(tmp_path, up))
+    k = ds.schedule_kickoffs(ex.upcoming)
+    eff, _ = ds.effective_kickoffs(k, config or {})
+    return ds.build_rows(ex, k, eff, quotes, created, "abc123")
+
+
+def test_ok_row_with_both_venues_and_flipped_polymarket(tmp_path):
+    q = [quote("kalshi", K_HOU_JAX, 0.66, 0.68, size=100.0),
+         quote("polymarket_us", P_HOU_JAX, 0.30, 0.33, subtitle="Texans")]  # YES = away
+    rows, excluded, warnings = rows_for(tmp_path, [up_row()], q)
+    (r,) = rows
+    assert excluded == [] and warnings == []
+    assert r["status"] == "ok" and r["p_home"] == 0.68 and r["pred_margin"] == 5.5
+    assert r["model"] == "full_qb_ridge" and r["model_version"] == "nfl-drivers@abc123"
+    assert r["kalshi_ticker"] == K_HOU_JAX and r["kalshi_yes_bid"] == 0.66
+    assert r["kalshi_bid_size"] == 100.0
+    assert r["poly_flipped"] is True and r["poly_yes_team_raw"] == "Texans"
+    assert (r["poly_yes_bid"], r["poly_yes_ask"]) == (0.67, 0.7)  # 1 - ask, 1 - bid
+    assert r["home_qb_projected"] == "Trevor Lawrence" and r["away_qb_projected"] == "C.J. Stroud"
+    assert r["kickoff_ts"] == datetime(2026, 10, 18, 13, 30, tzinfo=UTC)
+    assert r["minutes_to_kickoff"] == 90
+    assert r["game_day_et"] == "2026-10-18" and r["same_day"] is True
+
+
+def test_statuses_without_kalshi_or_any_quote(tmp_path):
+    poly = [quote("polymarket_us", P_HOU_JAX, 0.6, 0.7, subtitle="Jaguars")]
+    (r,), _, _ = rows_for(tmp_path, [up_row()], poly)
+    assert r["status"] == "no_kalshi_quote" and r["kalshi_yes_bid"] is None
+    assert r["poly_flipped"] is False and r["poly_yes_bid"] == 0.6
+    rows, _, _ = rows_for(tmp_path / "b", [up_row()], [])
+    assert rows[0]["status"] == "no_quotes" and ds.no_quotes_at_all(rows)
+
+
+def test_stale_or_future_quotes_are_missing(tmp_path):
+    q = [quote("kalshi", K_HOU_JAX, 0.66, 0.68, ts=T - timedelta(minutes=5, seconds=1)),
+         quote("polymarket_us", P_HOU_JAX, 0.6, 0.7, ts=T + timedelta(seconds=1),
+               subtitle="Jaguars")]  # fmt: skip
+    (r,), _, warnings = rows_for(tmp_path, [up_row()], q)
+    assert r["status"] == "no_quotes" and len(warnings) == 2
+
+
+def test_quote_exactly_five_minutes_old_is_used(tmp_path):
+    q = [quote("kalshi", K_HOU_JAX, 0.66, 0.68, ts=T - timedelta(minutes=5))]
+    (r,), _, _ = rows_for(tmp_path, [up_row()], q)
+    assert r["status"] == "ok"
+
+
+def test_duplicate_ticker_rows_are_missing_with_a_warning(tmp_path):  # Review Focus 4
+    q = [quote("kalshi", K_HOU_JAX, 0.66, 0.68), quote("kalshi", K_HOU_JAX, 0.1, 0.2)]
+    (r,), _, warnings = rows_for(tmp_path, [up_row()], q)
+    assert r["status"] == "no_quotes" and "2 kalshi rows" in warnings[0]
+
+
+def test_unmappable_polymarket_side_is_missing_with_a_warning(tmp_path):
+    q = [quote("polymarket_us", P_HOU_JAX, 0.6, 0.7, subtitle="Draw")]
+    (r,), _, warnings = rows_for(tmp_path, [up_row()], q)
+    assert r["poly_yes_bid"] is None and "Draw" in warnings[0]
+
+
+def test_started_game_is_excluded_at_the_boundary(tmp_path):
+    kickoff = datetime(2026, 10, 18, 13, 30, tzinfo=UTC)
+    rows, excluded, _ = rows_for(tmp_path, [up_row()], [], created=kickoff)
+    assert rows == [] and excluded == [
+        {"game_id": "2026_06_HOU_JAX", "kickoff_ts": kickoff, "reason": "game_started"}
+    ]
+
+
+def test_earlier_config_kickoff_excludes_the_game(tmp_path):
+    early = {"2026_06_HOU_JAX": T}  # kickoffs.json says it already started
+    rows, excluded, _ = rows_for(tmp_path, [up_row()], [], config=early)
+    assert rows == [] and excluded[0]["reason"] == "game_started"
+
+
+def test_na_prediction_is_excluded(tmp_path):  # Review Focus 1
+    rows, excluded, _ = rows_for(tmp_path, [up_row(pred_win="")], [])
+    assert rows == [] and excluded[0]["reason"] == "no_prediction"
+
+
+def test_same_day_is_judged_in_eastern_time(tmp_path):  # Review Focus 5
+    # 03:59Z on Oct 18 is 23:59 ET on Oct 17: not the game's day.
+    (r,), _, _ = rows_for(tmp_path, [up_row()], [], created=datetime(2026, 10, 18, 3, 59, tzinfo=UTC))
+    assert r["same_day"] is False
+    # 04:00Z is 00:00 ET Oct 18: same day, inside the London game's 00:00-09:30 ET window.
+    (r,), _, _ = rows_for(tmp_path / "b", [up_row()], [],
+                          created=datetime(2026, 10, 18, 4, 0, tzinfo=UTC))  # fmt: skip
+    assert r["same_day"] is True
+
+
+def test_rows_are_sorted_by_kickoff_and_cover_every_column(tmp_path):
+    up = [up_row(game_id="2026_06_DAL_GB", away="DAL", home="GB", gametime="20:20"), up_row()]
+    rows, _, _ = rows_for(tmp_path, up, [])
+    assert [r["game_id"] for r in rows] == ["2026_06_HOU_JAX", "2026_06_DAL_GB"]
+    assert set(rows[0]) == set(ds.PRED_COLUMNS)

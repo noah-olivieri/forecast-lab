@@ -16,7 +16,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from lab.ingest.nflverse import kickoff_dt
+from lab.forecasts import NICKNAMES, _tickers, flip_quote
+from lab.ingest.nflverse import ET, kickoff_dt
 
 MODEL = "full_qb_ridge"
 
@@ -163,3 +164,106 @@ def effective_kickoffs(
             disagreements.append({"game_id": game_id, "schedule": iso_z(k), "kickoffs_json": iso_z(c)})
         eff[game_id] = k if c is None else min(k, c)
     return eff, disagreements
+
+
+QUOTE_MAX_AGE = timedelta(minutes=5)
+KALSHI, POLYMARKET = "kalshi", "polymarket_us"
+
+PRED_COLUMNS = [
+    "game_id", "season", "week", "home_team", "away_team", "kickoff_ts",
+    "kickoff_source_disagrees", "game_day_et", "same_day", "created_ts", "minutes_to_kickoff",
+    "model", "model_version", "p_home", "pred_margin", "home_qb_projected",
+    "away_qb_projected", "status",
+    "kalshi_ticker", "kalshi_yes_bid", "kalshi_yes_ask", "kalshi_bid_size", "kalshi_ask_size",
+    "kalshi_quote_ts",
+    "poly_ticker", "poly_yes_team_raw", "poly_flipped", "poly_yes_bid", "poly_yes_ask",
+    "poly_quote_ts",
+]  # fmt: skip
+EXCLUDED_COLUMNS = ["game_id", "kickoff_ts", "reason"]
+
+
+def _num(text: str | None) -> float | None:
+    return float(text) if text not in (None, "", "NA") else None
+
+
+def _pick(quotes, venue, ticker, created_ts, game_id, warnings) -> dict | None:
+    hits = [q for q in quotes if q["venue"] == venue and q["market_ticker"] == ticker]
+    if len(hits) > 1:
+        warnings.append(f"{game_id}: {len(hits)} {venue} rows for {ticker}; treated as missing")
+        return None
+    if not hits:
+        return None
+    q = hits[0]
+    if q["ts_utc"] > created_ts or created_ts - q["ts_utc"] > QUOTE_MAX_AGE:
+        warnings.append(f"{game_id}: {venue} quote at {iso_z(q['ts_utc'])} is stale; treated as missing")
+        return None
+    return q
+
+
+def _quote_fields(r, kickoff, quotes, created_ts, warnings) -> dict:
+    game_id, home, away = r["game_id"], r["home_team"], r["away_team"]
+    k_ticker, p_ticker = _tickers(away, home, kickoff.astimezone(ET))
+    k = _pick(quotes, KALSHI, k_ticker, created_ts, game_id, warnings)
+    p = _pick(quotes, POLYMARKET, p_ticker, created_ts, game_id, warnings)
+    flipped = None
+    if p is not None:
+        yes_team = NICKNAMES.get(p["subtitle"])
+        if yes_team not in (home, away):
+            warnings.append(f"{p_ticker}: cannot map YES side {p['subtitle']!r}; treated as missing")
+            p = None
+        else:
+            flipped = yes_team == away
+    p_bid, p_ask = (None, None) if p is None else (p["yes_bid"], p["yes_ask"])
+    if flipped:
+        p_bid, p_ask = flip_quote(p_bid, p_ask)
+    kv = (lambda key: None) if k is None else (lambda key: k[key])
+    return {
+        "status": "ok" if k else ("no_kalshi_quote" if p else "no_quotes"),
+        "kalshi_ticker": k_ticker, "kalshi_yes_bid": kv("yes_bid"), "kalshi_yes_ask": kv("yes_ask"),
+        "kalshi_bid_size": kv("yes_bid_size"), "kalshi_ask_size": kv("yes_ask_size"),
+        "kalshi_quote_ts": kv("ts_utc"),
+        "poly_ticker": p_ticker, "poly_yes_team_raw": None if p is None else p["subtitle"],
+        "poly_flipped": flipped, "poly_yes_bid": p_bid, "poly_yes_ask": p_ask,
+        "poly_quote_ts": None if p is None else p["ts_utc"],
+    }  # fmt: skip
+
+
+def build_rows(
+    export: Export,
+    kickoffs: dict[str, datetime],
+    effective: dict[str, datetime],
+    quotes: list[dict],
+    created_ts: datetime,
+    drivers_sha: str,
+) -> tuple[list[dict], list[dict], list[str]]:
+    """One row per game still before kickoff; started or unpredicted games go to `excluded`."""
+    rows, excluded, warnings = [], [], []
+    capture_day = created_ts.astimezone(ET).date()
+    for r in sorted(export.upcoming, key=lambda r: (kickoffs[r["game_id"]], r["game_id"])):
+        game_id, kickoff = r["game_id"], kickoffs[r["game_id"]]
+        if effective[game_id] <= created_ts:
+            excluded.append({"game_id": game_id, "kickoff_ts": kickoff, "reason": "game_started"})
+            continue
+        p_home = _num(r.get("pred_win"))
+        if p_home is None:
+            excluded.append({"game_id": game_id, "kickoff_ts": kickoff, "reason": "no_prediction"})
+            continue
+        game_day = kickoff.astimezone(ET).date()
+        rows.append({
+            "game_id": game_id, "season": r["season"], "week": r["week"],
+            "home_team": r["home_team"], "away_team": r["away_team"], "kickoff_ts": kickoff,
+            "kickoff_source_disagrees": effective[game_id] != kickoff,
+            "game_day_et": game_day.isoformat(), "same_day": game_day == capture_day,
+            "created_ts": created_ts,
+            "minutes_to_kickoff": int((kickoff - created_ts).total_seconds() // 60),
+            "model": MODEL, "model_version": f"nfl-drivers@{drivers_sha}", "p_home": p_home,
+            "pred_margin": _num(r.get("pred_margin")),
+            "home_qb_projected": r.get("home_qb_name") or None,
+            "away_qb_projected": r.get("away_qb_name") or None,
+            **_quote_fields(r, kickoff, quotes, created_ts, warnings),
+        })  # fmt: skip
+    return rows, excluded, warnings
+
+
+def no_quotes_at_all(rows: list[dict]) -> bool:
+    return bool(rows) and all(r["status"] == "no_quotes" for r in rows)
