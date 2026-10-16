@@ -70,7 +70,9 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   (Brier primary, log loss secondary) on a labeled historical backtest plus the live sample;
   Phase E encompassing test vs market; then feature research for nfl-feature-v1. Parked:
   econ/M4, sportsbook ingestion, spreads, multi-sport, paper trading, site polish.
-- **NFL Drivers snapshot:** on game day, `Rscript run.R` in a clean nfl-drivers (results are
+- **NFL Drivers snapshot:** before running the snapshot, `git checkout main && git pull` in
+  forecast-lab (the bot pushes forecasts to `main`, so a stale checkout means a rejected push).
+  On game day, `Rscript run.R` in a clean nfl-drivers (results are
   stamped with its SHA), then `uv run python jobs/snapshot_drivers.py` here (both repos clean;
   results and schedule <= 6h old). The schedule's 6h clock starts when `run.R` starts (it
   re-downloads the schedule first), and the last full run took about 4h50m, so snapshot soon
