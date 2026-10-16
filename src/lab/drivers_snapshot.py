@@ -74,12 +74,24 @@ def _git(repo: Path, *args: str) -> str:
 
 
 def clean_head(repo: Path, allow_prefix: str | None = None) -> str:
-    """HEAD's SHA; refuses if anything outside `allow_prefix` is modified or untracked."""
-    out = _git(repo, "status", "--porcelain=v1", "--untracked-files=all")
-    dirty = [
-        line[3:] for line in out.splitlines()
-        if line and not (allow_prefix and line[3:].startswith(allow_prefix))
-    ]  # fmt: skip
+    """HEAD's SHA; refuses on any change except untracked files under `allow_prefix`.
+
+    Only untracked (`??`) entries are exempt: a modified, deleted or renamed tracked file is
+    refused even under the prefix. `-z` gives unquoted paths, with a rename's source path in
+    the next field.
+    """
+    fields = _git(repo, "status", "--porcelain=v1", "-z", "--untracked-files=all").split("\0")
+    dirty, i = [], 0
+    while i < len(fields):
+        entry = fields[i]
+        i += 1
+        if not entry:
+            continue
+        status, path = entry[:2], entry[3:]
+        if status[0] in "RC":
+            i += 1  # skip the rename/copy source field
+        if not (status == "??" and allow_prefix and path.startswith(allow_prefix)):
+            dirty.append(path)
     if dirty:
         raise SnapshotRefused(f"{repo}: uncommitted changes: {', '.join(dirty[:5])}")
     return _git(repo, "rev-parse", "HEAD").strip()

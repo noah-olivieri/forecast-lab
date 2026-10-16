@@ -168,6 +168,33 @@ def test_clean_head_allows_untracked_snapshots_only(tmp_path):
         ds.clean_head(repo, allow_prefix="drivers_snapshots/")
 
 
+def committed_snapshot(tmp_path):
+    repo = make_repo(tmp_path)
+    snap = repo / "drivers_snapshots" / "d"
+    snap.mkdir(parents=True)
+    (snap / "p.csv").write_text("x\n")
+    git(repo, "add", "drivers_snapshots")
+    git(repo, "commit", "-q", "-m", "snapshot")
+    return repo
+
+
+@pytest.mark.parametrize("change", ["modify", "delete"])
+def test_clean_head_refuses_changes_to_tracked_snapshots(tmp_path, change):
+    repo = committed_snapshot(tmp_path)
+    path = repo / "drivers_snapshots" / "d" / "p.csv"
+    path.write_text("y\n") if change == "modify" else path.unlink()
+    with pytest.raises(ds.SnapshotRefused, match="p.csv"):
+        ds.clean_head(repo, allow_prefix="drivers_snapshots/")
+
+
+def test_clean_head_refuses_a_staged_rename_out_of_the_snapshots(tmp_path):
+    repo = committed_snapshot(tmp_path)
+    (repo / "src").mkdir()
+    git(repo, "mv", "drivers_snapshots/d/p.csv", "src/evil.py")
+    with pytest.raises(ds.SnapshotRefused, match="evil.py"):
+        ds.clean_head(repo, allow_prefix="drivers_snapshots/")
+
+
 def test_results_must_postdate_the_drivers_commit(tmp_path):
     commit_time = ds.head_commit_time(make_repo(tmp_path))
     ds.check_results_after_commit(commit_time, commit_time)
