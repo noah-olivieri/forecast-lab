@@ -235,6 +235,16 @@ def test_guard_fails_on_delete(tmp_path):
     assert guard(repo, base, "HEAD").returncode == 1
 
 
+def test_guard_fails_when_a_commit_modifies_a_drivers_snapshot(tmp_path):
+    repo, base = history(tmp_path)
+    path = "drivers_snapshots/2026-10-18/2026-10-18T12-00-00Z/predictions.csv"
+    commit_file(repo, path, "a\n", "add snapshot")
+    assert guard(repo, base, "HEAD").returncode == 0  # adding is fine
+    commit_file(repo, path, "b\n", "edit snapshot")
+    r = guard(repo, base, "HEAD")
+    assert r.returncode == 1 and path in r.stdout + r.stderr
+
+
 def test_guard_sees_a_modification_hidden_by_a_later_revert(tmp_path):
     repo, base = history(tmp_path)
     commit_file(repo, "forecasts/a/one.csv", "edited\n", "edit")

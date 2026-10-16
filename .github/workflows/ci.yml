@@ -26,5 +26,5 @@ jobs:
       - run: uv sync --frozen
       - run: uv run pytest -q
       - run: uv run ruff check .
-      - name: forecasts/ and results/ are append-only (whole history)
+      - name: forecasts/, results/ and drivers_snapshots/ are append-only (whole history)
         run: .github/scripts/check_forecasts_append_only.sh "" HEAD
