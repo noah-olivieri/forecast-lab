@@ -242,3 +242,15 @@ pipeline or historical scoring was run and no cached results were opened in this
 Next implementation is limited to making the existing candidate usable with genuinely
 pre-decision inputs and matching its saved probability to the contemporaneous quote.
 No new feature search, holdout run, commit, push or live deployment occurred in this review.
+
+## 2026-10-19: NFL Drivers snapshot counting rule (drafted by Claude, approved by me)
+
+Week 6 games use the same-day rule. From week 7, a game's prediction counts only if its
+snapshot is a main snapshot (not a timing record), was taken within 3 hours before kickoff,
+and was on GitHub main before kickoff.
+
+## 2026-10-19: NFL Drivers timing records (drafted by Claude, approved by me)
+
+Predictions are also recorded about 48 and 24 hours before each kickoff, to test whether the
+model has more of an edge earlier. They don't count toward the main test. These timings were
+fixed before any results.
