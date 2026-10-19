@@ -1,0 +1,21 @@
+{
+ "capture_errors": {
+  "kalshi": [],
+  "polymarket_us": []
+ },
+ "created_ts": "2026-10-19T17:19:07Z",
+ "forecast_lab_sha": "0bc669146b3b7b70cd245d5b672cd6b0990ad458",
+ "kickoff_disagreements": [],
+ "mode": "full",
+ "n_excluded": 0,
+ "n_games": 1,
+ "nfl_drivers_sha": "d82858a001b2eabd6824ec71aa6d8704c51af7c2",
+ "results_created": "2026-10-19T17:02:44Z",
+ "schedule_downloaded": "2026-10-19T16:49:33Z",
+ "sha256": {
+  "pbp_2026.rds": "fa8e25e1042ade397002fa47bb2e4200ddb232be76056454cb39a8da554e0ef3",
+  "results.rds": "339af2ce84e36de637f3f94ec7d991e2e7db2d25859ba8ed82829b6424ada310",
+  "schedules_2026.rds": "ad76a8ef9a6372a1ab16fbae9b6c37f43ff6e0df161026827a7b46455293a4f6"
+ },
+ "upcoming_dropped": 0
+}

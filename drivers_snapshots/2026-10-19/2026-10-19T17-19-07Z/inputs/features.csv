@@ -1,0 +1,2 @@
+"game_id","season","week","pass_off_diff","rush_off_diff","pass_def_diff","rush_def_diff","home","rest_diff","home_off_bye","away_off_bye","home_short_week","away_short_week","away_travel_miles","tz_crossed","div_game","primetime","home_qb_changed","away_qb_changed","home_qb_backup","away_qb_backup","dome","temp","wind","turf","qb_adj_diff","weather_imputed"
+"2026_06_WAS_SF",2026,6,0.342009468976806,0.039540585720448,0.0652977443781872,0.0623019355336522,1,0,0,0,0,0,2427.90044953687,3,0,1,0,0,0,0,0,70,4,0,-0.0439376590103317,1
