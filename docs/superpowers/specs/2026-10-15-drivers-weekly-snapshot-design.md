@@ -149,6 +149,9 @@ Game-day reruns never replace the first. Scoring uses completed games only
 (`!is.na(margin)`); canceled or unplayed games are dropped and counted. The user records
 this rule in DECISIONS.md in their own words before the first comparison.
 
+2026-10-19 note: this same-day rule governs week 6 only. From week 7 the rule in DECISIONS.md
+(2026-10-19) applies; see `2026-10-19-drivers-snapshot-automation-design.md`.
+
 ## nfl-drivers change (full mode)
 
 - In `run_all()`, before the `completed()` filtering, keep the forecast week's feature rows:

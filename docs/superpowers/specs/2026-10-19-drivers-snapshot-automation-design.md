@@ -96,7 +96,7 @@ the push.
    - In every version of `DESCRIPTION`, the Gmail address becomes the noreply address (a
      blob/text replacement scoped to that address).
    - Afterwards, verify that `git log --all -p` and every commit message, author and committer
-     contain no `olivierinoah08@gmail.com`. The builder's audit found the address only in
+     contain no trace of the old address. The builder's audit found the address only in
      `DESCRIPTION` (38 of 40 commits) and in author/committer fields. A repeat check after the
      rewrite must find zero.
 3. **SHA map**, saved in forecast-lab as `docs/nfl-drivers-sha-map.csv` with columns

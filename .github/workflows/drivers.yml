@@ -1,0 +1,106 @@
+name: drivers
+
+# Automated NFL Drivers snapshots (spec docs/superpowers/specs/
+# 2026-10-19-drivers-snapshot-automation-design.md; rule in src/lab/drivers_slots.py).
+#  * Slots come from config/kickoffs.json (games within 60 min of the slot's first kickoff).
+#    Windows relative to slot time S: t3 (main) S-2h..S-45min; t48/t24 (timing records)
+#    S-48h..S-45h and S-24h..S-21h. Inside a window the bot retries every 15 minutes until
+#    drivers_snapshots/ on main covers the pair. Each timing has its own GO_LIVE.
+#  * The minutes (:04,:19,:34,:49) are odd on purpose (GitHub drops runs at busy minutes) and
+#    avoid the collect, forecast and kickoffs crons. They must equal DRIVERS_CRON in
+#    jobs/drivers_gate.py (tests/test_drivers_workflows.py checks this).
+#  * `gate` is stdlib-only and runs before any install. `alert` fails the run when a pair was
+#    MISSED, so GitHub emails. `snapshot` is a matrix over open pairs with one concurrency group
+#    per (slot, timing): one run per pair at a time, different pairs in parallel, and a queued
+#    duplicate re-checks main first (`check`) and exits without running R.
+#  * The bot's only write is push_drivers.sh: NEW files under one drivers_snapshots/ dir.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "4,19,34,49 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      pairs: ${{ steps.gate.outputs.pairs }}
+      missed: ${{ steps.gate.outputs.missed }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          path: forecast-lab
+          fetch-depth: 0
+      - id: gate
+        working-directory: forecast-lab
+        # Exit 1 means "something was missed" (already in the outputs); anything else is a crash.
+        run: python3 jobs/drivers_gate.py gate || [ $? -eq 1 ]
+
+  alert:
+    needs: gate
+    if: needs.gate.outputs.missed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: |
+          echo "::error::a drivers snapshot was MISSED (see the gate job)"
+          exit 1
+
+  snapshot:
+    needs: gate
+    if: needs.gate.outputs.pairs != '' && needs.gate.outputs.pairs != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        pair: ${{ fromJSON(needs.gate.outputs.pairs) }}
+    concurrency:
+      group: drivers-${{ matrix.pair.slot }}-${{ matrix.pair.timing }}
+      cancel-in-progress: false
+    env:
+      SLOT: ${{ matrix.pair.slot }}
+      TIMING: ${{ matrix.pair.timing }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          path: forecast-lab
+          fetch-depth: 0
+      - id: check
+        working-directory: forecast-lab
+        run: python3 jobs/drivers_gate.py check --slot "$SLOT" --timing "$TIMING"
+      - if: steps.check.outputs.run == 'true'
+        uses: ./forecast-lab/.github/actions/drivers-setup
+      - if: steps.check.outputs.run == 'true'
+        name: Run nfl-drivers
+        working-directory: nfl-drivers
+        run: Rscript run.R
+      - if: steps.check.outputs.run == 'true'
+        id: snap
+        name: Snapshot this slot
+        working-directory: forecast-lab
+        shell: bash
+        # The log goes to $RUNNER_TEMP: a file in the checkout would fail the clean-tree check.
+        run: |
+          uv run --no-sync python jobs/snapshot_drivers.py --drivers ../nfl-drivers \
+            --slot "$SLOT" --timing "$TIMING" | tee "$RUNNER_TEMP/snapshot.log"
+          echo "dir=$(sed -n 's/^wrote //p' "$RUNNER_TEMP/snapshot.log")" >> "$GITHUB_OUTPUT"
+      - if: steps.check.outputs.run == 'true'
+        name: Tests
+        working-directory: forecast-lab
+        run: PYTHON_DOTENV_DISABLED=1 uv run --no-sync pytest -q
+      - if: steps.check.outputs.run == 'true'
+        name: Lint
+        working-directory: forecast-lab
+        run: uv run --no-sync ruff check .
+      - if: steps.check.outputs.run == 'true'
+        name: Commit and push the new snapshot
+        working-directory: forecast-lab
+        env:
+          DIR: ${{ steps.snap.outputs.dir }}
+        run: .github/scripts/push_drivers.sh "$DIR" "$TIMING slot $SLOT"

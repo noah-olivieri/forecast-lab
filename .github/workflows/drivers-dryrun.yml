@@ -1,0 +1,40 @@
+name: drivers-dryrun
+
+# Manual end-to-end check of the drivers snapshot environment: the same setup as drivers.yml,
+# run.R, a manual-mode snapshot (written only inside this ephemeral runner), tests and lint.
+# It never commits or pushes. Step durations go to the run summary.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dryrun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          path: forecast-lab
+      - name: Setup
+        uses: ./forecast-lab/.github/actions/drivers-setup
+      - name: Run nfl-drivers
+        working-directory: nfl-drivers
+        run: |
+          start=$SECONDS
+          Rscript run.R
+          echo "- run.R: $((SECONDS - start)) s" >> "$GITHUB_STEP_SUMMARY"
+      - name: Snapshot (manual mode, not pushed)
+        working-directory: forecast-lab
+        run: |
+          start=$SECONDS
+          uv run --no-sync python jobs/snapshot_drivers.py --drivers ../nfl-drivers
+          echo "- snapshot_drivers.py: $((SECONDS - start)) s" >> "$GITHUB_STEP_SUMMARY"
+      - name: Tests
+        working-directory: forecast-lab
+        run: PYTHON_DOTENV_DISABLED=1 uv run --no-sync pytest -q
+      - name: Lint
+        working-directory: forecast-lab
+        run: uv run --no-sync ruff check .

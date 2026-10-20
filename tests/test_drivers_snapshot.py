@@ -110,6 +110,7 @@ def test_real_r_export_round_trip(tmp_path, mode):
     assert ex.schedule_downloaded == datetime(2026, 10, 18, 9, 0, tzinfo=UTC)  # PDT -> UTC
     assert ex.upcoming_dropped == 1
     assert ex.code_sha == "abc123" and ex.code_dirty is False
+    assert ex.r_version.startswith("R version") and "jsonlite" in ex.r_packages
 
 
 @pytest.mark.skipif(RSCRIPT is None, reason="Rscript not installed")
@@ -471,3 +472,47 @@ def test_a_missing_quote_is_warned_not_silent(tmp_path):
     assert any("no kalshi quote" in w and K_HOU_JAX in w for w in warnings)
     assert any("no polymarket_us quote" in w and P_HOU_JAX in w for w in warnings)
 
+
+
+# ---- slots and labels (spec 2026-10-19) -------------------------------------------------------
+
+
+def test_pred_columns_end_with_labels():
+    assert ds.PRED_COLUMNS[-3:] == ["purpose", "timing", "slot"]
+
+
+def test_rows_carry_labels_and_default_to_main(tmp_path):
+    (r,), _, _ = rows_for(tmp_path, [up_row()], [])
+    assert (r["purpose"], r["timing"], r["slot"]) == ("main", None, None)
+    ex = ds.read_export(fake_export(tmp_path / "b", [up_row()]))
+    k = ds.schedule_kickoffs(ex.upcoming)
+    labels = {"purpose": "timing", "timing": "t24", "slot": "2026-10-18T13:30Z"}
+    (r,), _, _ = ds.build_rows(ex, k, k, [], T, "abc123", labels=labels)
+    assert (r["purpose"], r["timing"], r["slot"]) == ("timing", "t24", "2026-10-18T13:30Z")
+
+
+def test_build_rows_slot_filter_marks_other_slot_and_not_in_results(tmp_path):
+    up = [up_row(), up_row(game_id="2026_06_DAL_GB", away="DAL", home="GB", gametime="20:20")]
+    ex = ds.read_export(fake_export(tmp_path, up))
+    k = ds.schedule_kickoffs(ex.upcoming)
+    late = datetime(2026, 10, 18, 13, 30, tzinfo=UTC)
+    rows, excluded, _ = ds.build_rows(
+        ex, k, k, [], T, "abc123", slot_games=frozenset({"2026_06_HOU_JAX", "2026_06_X_Y"}),
+        config_kickoffs={"2026_06_X_Y": late},
+    )  # fmt: skip
+    assert [r["game_id"] for r in rows] == ["2026_06_HOU_JAX"]
+    assert excluded == [
+        {"game_id": "2026_06_DAL_GB", "kickoff_ts": k["2026_06_DAL_GB"], "reason": "other_slot"},
+        {"game_id": "2026_06_X_Y", "kickoff_ts": late, "reason": "not_in_results"},
+    ]
+
+
+def test_read_export_r_packages_optional(tmp_path):
+    ex = ds.read_export(fake_export(tmp_path, [up_row()]))
+    assert ex.r_version is None and ex.r_packages is None
+    d = fake_export(tmp_path / "b", [up_row()])
+    meta = json.loads((d / "meta.json").read_text())
+    meta |= {"r_version": "R version 4.5.2 (2025-10-31)", "r_packages": {"jsonlite": "2.0.0"}}
+    (d / "meta.json").write_text(json.dumps(meta))
+    ex = ds.read_export(d)
+    assert ex.r_version.startswith("R version") and ex.r_packages == {"jsonlite": "2.0.0"}

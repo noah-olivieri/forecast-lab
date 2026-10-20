@@ -28,5 +28,10 @@ meta <- list(created = iso(r$created), schedule_downloaded = iso(r$schedule_down
              n_rows = nrow(up),
              # absent in results.rds written before nfl-drivers recorded them -> null
              code_sha = if (is.null(r$code_sha)) NA else r$code_sha,
-             code_dirty = if (is.null(r$code_dirty)) NA else r$code_dirty)
+             code_dirty = if (is.null(r$code_dirty)) NA else r$code_dirty,
+             # the library this process sees: nfl-drivers' renv when run from its directory
+             r_version = R.version.string,
+             r_packages = sapply(c("nflreadr", "glmnet", "dplyr", "jsonlite"), function(p)
+               tryCatch(as.character(utils::packageVersion(p)), error = function(e) NA_character_),
+               simplify = FALSE))
 writeLines(jsonlite::toJSON(meta, auto_unbox = TRUE, na = "null"), file.path(out, "meta.json"))

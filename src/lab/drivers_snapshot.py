@@ -43,6 +43,8 @@ class Export:
     upcoming_dropped: int | None
     code_sha: str | None = None  # git HEAD when run.R ran (nfl-drivers code_state())
     code_dirty: bool | None = None
+    r_version: str | None = None  # R and key package versions in the library run.R used
+    r_packages: dict[str, str] | None = None
 
     @property
     def mode(self) -> str:
@@ -61,6 +63,7 @@ def read_export(export_dir: Path) -> Export:
     return Export(
         export_dir, rows, _utc(meta.get("created")), _utc(meta.get("schedule_downloaded")),
         meta.get("upcoming_dropped"), meta.get("code_sha"), meta.get("code_dirty"),
+        meta.get("r_version"), meta.get("r_packages"),
     )  # fmt: skip
 
 
@@ -180,6 +183,7 @@ PRED_COLUMNS = [
     "kalshi_quote_ts",
     "poly_ticker", "poly_yes_team_raw", "poly_flipped", "poly_yes_bid", "poly_yes_ask",
     "poly_quote_ts",
+    "purpose", "timing", "slot",  # appended 2026-10-19; older snapshots lack them (= main)
 ]  # fmt: skip
 EXCLUDED_COLUMNS = ["game_id", "kickoff_ts", "reason"]
 
@@ -251,12 +255,23 @@ def build_rows(
     drivers_sha: str,
     *,
     disagree: frozenset[str] | set[str] = frozenset(),
+    slot_games: frozenset[str] | None = None,
+    labels: dict[str, str | None] | None = None,
+    config_kickoffs: dict[str, datetime] | None = None,
 ) -> tuple[list[dict], list[dict], list[str]]:
-    """One row per game still before kickoff; started or unpredicted games go to `excluded`."""
+    """One row per game still before kickoff; started or unpredicted games go to `excluded`.
+
+    With `slot_games` (a slot run), other upcoming games are excluded as `other_slot` and slot
+    games nfl-drivers did not produce are excluded as `not_in_results`. Every row carries
+    `labels` (purpose, timing, slot); the default is a manual main snapshot."""
     rows, excluded, warnings = [], [], []
+    labels = labels or {"purpose": "main", "timing": None, "slot": None}
     capture_day = created_ts.astimezone(ET).date()
     for r in sorted(export.upcoming, key=lambda r: (kickoffs[r["game_id"]], r["game_id"])):
         game_id, kickoff = r["game_id"], kickoffs[r["game_id"]]
+        if slot_games is not None and game_id not in slot_games:
+            excluded.append({"game_id": game_id, "kickoff_ts": kickoff, "reason": "other_slot"})
+            continue
         if effective[game_id] <= created_ts:
             excluded.append({"game_id": game_id, "kickoff_ts": kickoff, "reason": "game_started"})
             continue
@@ -277,7 +292,12 @@ def build_rows(
             "home_qb_projected": r.get("home_qb_name") or None,
             "away_qb_projected": r.get("away_qb_name") or None,
             **_quote_fields(r, kickoff, quotes, created_ts, warnings),
+            **labels,
         })  # fmt: skip
+    produced = {r["game_id"] for r in export.upcoming}
+    for game_id in sorted((slot_games or frozenset()) - produced):
+        kickoff = (config_kickoffs or {}).get(game_id)
+        excluded.append({"game_id": game_id, "kickoff_ts": kickoff, "reason": "not_in_results"})
     return rows, excluded, warnings
 
 
