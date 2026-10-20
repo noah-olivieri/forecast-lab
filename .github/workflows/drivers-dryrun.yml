@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   dryrun:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # pinned: renv cache + Posit binaries are per OS release
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7

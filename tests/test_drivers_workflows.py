@@ -255,3 +255,10 @@ def test_drivers_action_versions_are_the_verified_ones():
 def test_setup_fails_fast_if_nfl_drivers_tree_is_not_clean():
     last = load(ACTION)["runs"]["steps"][-1]
     assert "git -C nfl-drivers status --porcelain" in last["run"] and "exit 1" in last["run"]
+
+
+def test_r_jobs_pin_the_runner_image():
+    # ubuntu-latest moves to Ubuntu 26 from 2026-10-19: the renv cache key and Posit binaries
+    # are per OS release, so an unplanned move would rebuild packages from source mid-window.
+    assert snapshot_job()["runs-on"] == "ubuntu-24.04"
+    assert load(WORKFLOWS / "drivers-dryrun.yml")["jobs"]["dryrun"]["runs-on"] == "ubuntu-24.04"
