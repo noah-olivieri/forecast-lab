@@ -122,6 +122,10 @@ def take_snapshot(drivers, repo, out_root, *, export_fn, capture_fn, config_kick
         path = ds.write_snapshot(out_root, created_ts, rows, excluded, meta, export, schedule_rds)
     for w in warnings:
         print(f"::warning title=Snapshot input::{w}")
+    if slot is not None:  # covered for retry purposes, but the slot game got no probability
+        for x in excluded:
+            if x["reason"] in ("no_prediction", "not_in_results"):
+                print(f"::error title=Slot game not predicted::{x['game_id']} ({x['reason']})")
     for d in disagreements:
         print(f"::warning title=Kickoff disagreement::{d}")
     if ds.no_quotes_at_all(rows):

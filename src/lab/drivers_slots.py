@@ -116,7 +116,7 @@ def read_snapshots(root: Path) -> tuple[list[SnapshotRecord], list[str]]:
                 purpose=meta.get("purpose") or "main", timing=meta.get("timing"),
                 slot=meta.get("slot"), listed=frozenset(listed),
             ))  # fmt: skip
-        except (OSError, ValueError, KeyError) as exc:
+        except Exception as exc:  # noqa: BLE001  any bad dir is a warning; the gate must not die
             warnings.append(f"unreadable snapshot {d}: {type(exc).__name__}: {exc}")
     return records, warnings
 

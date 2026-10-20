@@ -250,3 +250,12 @@ def test_missed_timing_after_close_plus_grace(tmp_path):
     snap(tmp_path, K - 22 * H, predicted=["G0"], purpose="timing", timing="t24", slot=s.id)
     assert sl.missed([s], ko, records(tmp_path), close + 45 * M, lambda p: None,
                      go_live=ALL_LIVE) == []  # fmt: skip
+
+
+def test_read_snapshots_wrong_shape_meta_is_a_warning_not_a_crash(tmp_path):
+    for i, text in enumerate(["[1, 2]", '{"created_ts": null}', '{"created_ts": 5}', "null"]):
+        d = snap(tmp_path, K - (i + 1) * H, predicted=["G0"])
+        (d / "meta.json").write_text(text)
+    snap(tmp_path, K - 9 * H, predicted=["G0"])
+    recs, warnings = sl.read_snapshots(tmp_path)
+    assert len(recs) == 1 and len(warnings) == 4

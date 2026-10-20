@@ -180,3 +180,11 @@ def test_run_export_uses_drivers_cwd(tmp_path, monkeypatch):
     monkeypatch.setattr(sd.subprocess, "run", fake_run)
     sd.run_export(tmp_path / "results.rds", tmp_path / "out", "Rscript", cwd=tmp_path / "drivers")
     assert seen["cwd"] == tmp_path / "drivers"
+
+
+def test_slot_game_without_prediction_is_flagged(tmp_path, capsys):
+    config = {**CONFIG, "2026_06_X_Y": KICK + timedelta(minutes=20)}  # same slot, not produced
+    d = run(tmp_path, config=config, slot_id=SLOT, timing="t3")
+    assert "not_in_results" in (d / "excluded.csv").read_text()
+    out = capsys.readouterr().out
+    assert "::error title=Slot game not predicted::2026_06_X_Y (not_in_results)" in out
