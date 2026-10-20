@@ -1,0 +1,2 @@
+game_id,home_team,away_team,home_score,away_score,y,source,fetched_at_utc
+2026_06_WAS_SF,SF,WAS,23,17,1,nflverse schedules (nflreadpy 0.1.5),2026-10-20T19:33:09Z
