@@ -26,7 +26,8 @@ T = datetime(2026, 10, 18, 12, 0, tzinfo=UTC)
 def drivers_repo(tmp_path):
     repo = make_repo(tmp_path, "drivers")
     (repo / ".gitignore").write_text("data/cache/\n")
-    git(repo, "add", ".gitignore")
+    (repo / "renv.lock").write_text('{"R": {"Version": "4.5.2"}}\n')
+    git(repo, "add", ".gitignore", "renv.lock")
     git(repo, "commit", "-q", "-m", "ignore")
     cache = repo / "data" / "cache"
     cache.mkdir(parents=True)
@@ -35,7 +36,8 @@ def drivers_repo(tmp_path):
     return repo
 
 
-def fakes(tmp_path, drivers, *, quotes=None, created=None, features=False, code_sha=None):
+def fakes(tmp_path, drivers, *, quotes=None, created=None, features=False, code_sha=None,
+          capture_at=T):  # fmt: skip
     """The fake export is stamped with the drivers repo's real HEAD unless told otherwise."""
     src = fake_export(tmp_path, [up_row()], features=features,
                       created=(created or T - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -46,17 +48,18 @@ def fakes(tmp_path, drivers, *, quotes=None, created=None, features=False, code_
         shutil.copytree(src, out_dir, dirs_exist_ok=True)
 
     def capture_fn():
-        return quotes if quotes is not None else [], {"kalshi": [], "polymarket_us": []}, T
+        return quotes if quotes is not None else [], {"kalshi": [], "polymarket_us": []}, capture_at
 
     return export_fn, capture_fn
 
 
-def run(tmp_path, config=None, **kw):
+def run(tmp_path, config=None, slot_id=None, timing=None, **kw):
     drivers = drivers_repo(tmp_path)
     lab = make_repo(tmp_path, "lab")
     export_fn, capture_fn = fakes(tmp_path, drivers, **kw)
     return sd.take_snapshot(drivers, lab, lab / "drivers_snapshots", export_fn=export_fn,
-                            capture_fn=capture_fn, config_kickoffs=config or {})  # fmt: skip
+                            capture_fn=capture_fn, config_kickoffs=config or {},
+                            slot_id=slot_id, timing=timing)  # fmt: skip
 
 
 def test_end_to_end_writes_snapshot_and_meta(tmp_path):
@@ -119,3 +122,61 @@ def test_kickoff_disagreement_reaches_meta_and_the_row(tmp_path):
     assert "kickoff_source_disagrees" in (d / "predictions.csv").read_text().splitlines()[0]
     assert (d / "predictions.csv").read_text().splitlines()[1].split(",")[6] == "True"
 
+
+
+# ---- slot runs (spec 2026-10-19) --------------------------------------------------------------
+
+KICK = datetime(2026, 10, 18, 13, 30, tzinfo=UTC)  # up_row()'s HOU@JAX, 09:30 ET
+SLOT = "2026-10-18T13:30Z"  # t3 window [11:30Z, 12:45Z), grace to 13:30Z
+CONFIG = {"2026_06_HOU_JAX": KICK}
+
+
+def test_slot_run_labels_meta_and_rows(tmp_path):
+    d = run(tmp_path, config=CONFIG, slot_id=SLOT, timing="t3")
+    meta = json.loads((d / "meta.json").read_text())
+    assert (meta["purpose"], meta["timing"], meta["slot"]) == ("main", "t3", SLOT)
+    assert meta["sha256"]["renv.lock"] == ds.sha256_file(tmp_path / "drivers" / "renv.lock")
+    assert "r_version" in meta and "r_packages" in meta
+    header, row = (d / "predictions.csv").read_text().splitlines()[:2]
+    assert header.endswith("purpose,timing,slot") and row.endswith(f"main,t3,{SLOT}")
+
+
+def test_manual_run_is_main_without_slot(tmp_path):
+    meta = json.loads((run(tmp_path) / "meta.json").read_text())
+    assert (meta["purpose"], meta["timing"], meta["slot"]) == ("main", None, None)
+
+
+def test_t3_written_after_close_within_grace(tmp_path):
+    d = run(tmp_path, config=CONFIG, slot_id=SLOT, timing="t3",
+            capture_at=datetime(2026, 10, 18, 12, 55, tzinfo=UTC))  # fmt: skip
+    assert json.loads((d / "meta.json").read_text())["n_games"] == 1
+
+
+def test_slot_run_refused_outside_window_plus_grace(tmp_path):
+    with pytest.raises(ds.SnapshotRefused, match="opens"):
+        run(tmp_path, config=CONFIG, slot_id=SLOT, timing="t3",
+            capture_at=datetime(2026, 10, 18, 11, 29, tzinfo=UTC))  # fmt: skip
+    assert not (tmp_path / "lab" / "drivers_snapshots").exists()
+
+
+def test_unknown_slot_refused(tmp_path):
+    with pytest.raises(ds.SnapshotRefused, match="no slot"):
+        run(tmp_path, config=CONFIG, slot_id="2026-10-18T17:00Z", timing="t3")
+
+
+def test_slot_and_timing_must_come_together():
+    with pytest.raises(SystemExit) as e:
+        sd.main(["--slot", SLOT])
+    assert e.value.code == 2
+
+
+def test_run_export_uses_drivers_cwd(tmp_path, monkeypatch):
+    seen = {}
+
+    def fake_run(cmd, **kw):
+        seen.update(kw)
+        return sd.subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(sd.subprocess, "run", fake_run)
+    sd.run_export(tmp_path / "results.rds", tmp_path / "out", "Rscript", cwd=tmp_path / "drivers")
+    assert seen["cwd"] == tmp_path / "drivers"
