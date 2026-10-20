@@ -259,3 +259,10 @@ def test_read_snapshots_wrong_shape_meta_is_a_warning_not_a_crash(tmp_path):
     snap(tmp_path, K - 9 * H, predicted=["G0"])
     recs, warnings = sl.read_snapshots(tmp_path)
     assert len(recs) == 1 and len(warnings) == 4
+
+
+def test_go_live_t3_is_set_and_before_the_first_week7_window():
+    ne_chi_t3_open = datetime(2026, 10, 22, 22, 15, tzinfo=UTC)  # NE@CHI 00:15Z minus 2h
+    assert sl.GO_LIVE["t3"] == datetime(2026, 10, 21, 0, 0, tzinfo=UTC)
+    assert sl.GO_LIVE["t3"] <= ne_chi_t3_open < datetime(2026, 10, 25, 11, 30, tzinfo=UTC)
+    assert sl.GO_LIVE["t48"] == sl.GO_LIVE["t24"] == sl.GO_LIVE_UNSET  # stage 2 not live yet

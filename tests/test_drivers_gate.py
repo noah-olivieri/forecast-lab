@@ -86,7 +86,8 @@ def test_gate_reports_missed_and_exits_1(tmp_path, out, live, monkeypatch, capsy
     assert "::error title=Drivers snapshot MISSED::t3 G" in capsys.readouterr().out
 
 
-def test_gate_with_unset_go_live_finds_nothing_and_warns(tmp_path, out, capsys):
+def test_gate_with_unset_go_live_finds_nothing_and_warns(tmp_path, out, capsys, monkeypatch):
+    monkeypatch.setattr(sl, "GO_LIVE", dict.fromkeys(sl.TIMINGS, sl.GO_LIVE_UNSET))
     assert run(tmp_path, "gate", "--now", iso(K - 90 * M)) == 0
     assert out()["pairs"] == "[]"
     assert "::warning title=GO_LIVE unset" in capsys.readouterr().out

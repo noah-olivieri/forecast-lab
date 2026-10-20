@@ -37,7 +37,12 @@ MISSED_LOOKBACK = timedelta(hours=6)
 # A window is eligible only if it opens at or after its timing's go-live. GO_LIVE_UNSET means
 # "not live": nothing eligible, no alerts.
 GO_LIVE_UNSET = datetime(2099, 1, 1, tzinfo=UTC)
-GO_LIVE: dict[str, datetime] = {"t48": GO_LIVE_UNSET, "t24": GO_LIVE_UNSET, "t3": GO_LIVE_UNSET}
+# t3 went live with the 2026-10-20 merge (first slot: week 7 NE@CHI, window opens 10-22 22:15Z).
+GO_LIVE: dict[str, datetime] = {
+    "t48": GO_LIVE_UNSET,
+    "t24": GO_LIVE_UNSET,
+    "t3": datetime(2026, 10, 21, 0, 0, tzinfo=UTC),
+}
 
 
 @dataclass(frozen=True)
