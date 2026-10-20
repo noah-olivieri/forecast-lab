@@ -18,11 +18,12 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
 - Leakage rules (PLAN.md 7): every feature function takes `as_of`; ALFRED vintages only; the
   market price compared to a forecast comes from the same snapshot.
 - `main` is protected against force-push and deletion (ruleset, no bypass). Never force-push.
-- **Two exceptions to "ask before pushing":** the `forecast` workflow (github-actions[bot],
-  `.github/scripts/push_forecasts.sh`) may push NEW files under `forecasts/`, and the `settle`
+- **Three exceptions to "ask before pushing":** the `forecast` workflow (github-actions[bot],
+  `.github/scripts/push_forecasts.sh`) may push NEW files under `forecasts/`, the `settle`
   workflow (github-actions[bot], `.github/scripts/push_results.sh`) may push NEW files under
-  `results/`, to `main` without asking. Neither ever modifies or deletes an existing file
-  (`ci.yml` fails any commit that does). Every other push, including all code, workflow and
+  `results/`, and the `drivers` workflow (github-actions[bot], `.github/scripts/push_drivers.sh`)
+  may push NEW files under `drivers_snapshots/`, to `main` without asking. None ever modifies or
+  deletes an existing file (`ci.yml` fails any commit that does). Every other push, including all code, workflow and
   config changes, still needs the user's approval.
 - The pre-registered rule lives in `RESEARCH_PROTOCOL.md`. Never edit anything above its
   "Changes" section; amendments are new dated sections under "Changes".
@@ -32,9 +33,13 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   written only by Actions. `data/` locally is gitignored (DuckDB + raw).
 - `results/<season>/<game_id>.csv`: settled outcomes, written only by the `settle` workflow
   (`jobs/settle.py`); append-only like `forecasts/`.
-- `drivers_snapshots/<ET date>/<UTC time>Z/`: NFL Drivers weekly snapshots (`jobs/snapshot_drivers.py`,
-  spec `docs/superpowers/specs/2026-10-15-drivers-weekly-snapshot-design.md`). Written locally,
-  committed and pushed by the user; append-only like `forecasts/` (`ci.yml` guard).
+- `drivers_snapshots/<ET date>/<UTC time>Z/`: NFL Drivers snapshots (`jobs/snapshot_drivers.py`,
+  specs `docs/superpowers/specs/2026-10-15-drivers-weekly-snapshot-design.md` and
+  `2026-10-19-drivers-snapshot-automation-design.md`). Written by the `drivers` workflow
+  (`drivers.yml`: stdlib gate `jobs/drivers_gate.py`, rule in `src/lab/drivers_slots.py`, setup
+  in `.github/actions/drivers-setup/`), or by hand as the fallback; append-only like
+  `forecasts/` (`ci.yml` guard). `docs/nfl-drivers-sha-map.csv` maps pre-publication
+  nfl-drivers SHAs to the public repo's.
 - `src/lab/ingest/{common,kalshi,polymarket_us}.py`, `jobs/snapshot_markets.py`,
   `jobs/in_window.py` (collector gate), `jobs/gapcheck.py`, `jobs/compact_weekly.py`.
 - Tracked markets live in `config/markets.yaml`.
@@ -70,15 +75,24 @@ prices (Brier, calibration, simulated P&L after fees). **No real money.** Full d
   (Brier primary, log loss secondary) on a labeled historical backtest plus the live sample;
   Phase E encompassing test vs market; then feature research for nfl-feature-v1. Parked:
   econ/M4, sportsbook ingestion, spreads, multi-sport, paper trading, site polish.
-- **NFL Drivers snapshot:** before running the snapshot, `git checkout main && git pull` in
+- **NFL Drivers snapshot automation** (`drivers.yml`, cron `4,19,34,49 * * * *`): per kickoff
+  slot (games within 60 min of its first kickoff, from `config/kickoffs.json`), a main snapshot
+  (`t3`, window S-2h..S-45min) and timing records (`t48` S-48h..S-45h, `t24` S-24h..S-21h),
+  retried every 15 min until covered; each timing has its own `GO_LIVE` in
+  `src/lab/drivers_slots.py`. Counting rule: DECISIONS.md 2026-10-19 (week 6 same-day; from
+  week 7 a main snapshot within 3h before kickoff, on `main` before kickoff). nfl-drivers is
+  public (`noah-olivieri/nfl-drivers`) and renv-pinned; `drivers-dryrun.yml` (manual) runs the
+  whole pipeline without pushing. MISSED pairs fail the run, so GitHub emails.
+- **NFL Drivers snapshot, manual fallback:** first `Rscript -e 'renv::restore()'` once in
+  nfl-drivers after the renv pin. Before running the snapshot, `git checkout main && git pull` in
   forecast-lab (the bot pushes forecasts to `main`, so a stale checkout means a rejected push).
   On game day, `Rscript run.R` in a clean nfl-drivers (results are
   stamped with its SHA), then `uv run python jobs/snapshot_drivers.py` here (both repos clean;
   results and schedule <= 6h old). The schedule's 6h clock starts when `run.R` starts (it
   re-downloads the schedule first); a full run takes about 14 minutes (measured 2026-10-16), so
   snapshot soon after `run.R` finishes and keep the Mac awake during the run. Commit the previous snapshot before rerunning (a staged but
-  uncommitted one is refused). Push before the first kickoff it covers; the counting rule is in
-  the spec.
+  uncommitted one is refused). From week 7 a manual snapshot counts only for games kicking off
+  within 3h after it, and only if pushed before kickoff (DECISIONS.md 2026-10-19).
 
 ## M1 decisions and caveats
 - Kalshi is the system of record; Polymarket US is a secondary cross-venue reference.
