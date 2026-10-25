@@ -1,0 +1,14 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_07_PIT_NO",2026,7,"2026-10-25","09:30","PIT","NO","Aaron Rodgers","Tyler Shough",-3,-2.69927628128603,0.410521620585213
+"full_qb_ridge","2026_07_SF_ATL",2026,7,"2026-10-25","13:00","SF","ATL","Brock Purdy","Michael Penix Jr.",-2.5,-5.25551991697178,0.334235625014804
+"full_qb_ridge","2026_07_CIN_BAL",2026,7,"2026-10-25","13:00","CIN","BAL","Joe Burrow","Tyler Huntley",-3,-3.32989282149735,0.371695621836178
+"full_qb_ridge","2026_07_TB_CAR",2026,7,"2026-10-25","13:00","TB","CAR","Jalon Daniels","Bryce Young",3,6.74898282325248,0.723701821569245
+"full_qb_ridge","2026_07_NYG_HOU",2026,7,"2026-10-25","13:00","NYG","HOU","J.J. McCarthy","C.J. Stroud",10.5,12.4727998837491,0.857695631109547
+"full_qb_ridge","2026_07_IND_MIN",2026,7,"2026-10-25","13:00","IND","MIN","Daniel Jones","Kyler Murray",6.5,5.38825581949882,0.69316816742708
+"full_qb_ridge","2026_07_MIA_NYJ",2026,7,"2026-10-25","13:00","MIA","NYJ","Malik Willis","Geno Smith",4.5,4.91936159150438,0.658875398891031
+"full_qb_ridge","2026_07_CLE_TEN",2026,7,"2026-10-25","13:00","CLE","TEN","Deshaun Watson","Cam Ward",-1.5,-3.75451604693002,0.390982226505366
+"full_qb_ridge","2026_07_DEN_ARI",2026,7,"2026-10-25","16:05","DEN","ARI","Bo Nix","Jacoby Brissett",-4.5,-1.5411989752997,0.488286552914827
+"full_qb_ridge","2026_07_GB_DET",2026,7,"2026-10-25","16:25","GB","DET","Jordan Love","Jared Goff",3.5,2.51872090845548,0.59880292089086
+"full_qb_ridge","2026_07_LA_LV",2026,7,"2026-10-25","16:25","LA","LV","Matthew Stafford","Kirk Cousins",-3,-3.9124796433744,0.364068982120684
+"full_qb_ridge","2026_07_KC_SEA",2026,7,"2026-10-25","20:20","KC","SEA","Patrick Mahomes","Sam Darnold",3,1.4174496409381,0.537129829424985
+"full_qb_ridge","2026_07_DAL_PHI",2026,7,"2026-10-26","20:15","DAL","PHI","Dak Prescott","Jalen Hurts",-4.5,0.415771975604252,0.485306877183257
