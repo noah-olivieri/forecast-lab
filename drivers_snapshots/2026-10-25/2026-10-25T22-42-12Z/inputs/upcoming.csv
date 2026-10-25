@@ -1,0 +1,6 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_07_DEN_ARI",2026,7,"2026-10-25","16:05","DEN","ARI","Bo Nix","Jacoby Brissett",-4.5,-1.54616037201544,0.488233312675845
+"full_qb_ridge","2026_07_GB_DET",2026,7,"2026-10-25","16:25","GB","DET","Jordan Love","Jared Goff",3.5,2.51872090845548,0.598802920890859
+"full_qb_ridge","2026_07_LA_LV",2026,7,"2026-10-25","16:25","LA","LV","Matthew Stafford","Kirk Cousins",-3.5,-3.9124796433744,0.364068982120684
+"full_qb_ridge","2026_07_KC_SEA",2026,7,"2026-10-25","20:20","KC","SEA","Patrick Mahomes","Sam Darnold",3,1.4174496409381,0.537129829424985
+"full_qb_ridge","2026_07_DAL_PHI",2026,7,"2026-10-26","20:15","DAL","PHI","Dak Prescott","Jalen Hurts",-4.5,0.415771975604252,0.485306877183257
