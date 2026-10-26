@@ -1,0 +1,2 @@
+game_id,home_team,away_team,home_score,away_score,y,source,fetched_at_utc
+2026_07_PIT_NO,NO,PIT,10,16,0,nflverse schedules (nflreadpy 0.1.5),2026-10-26T20:43:02Z
