@@ -1,0 +1,2 @@
+"game_id","season","week","pass_off_diff","rush_off_diff","pass_def_diff","rush_def_diff","home","rest_diff","home_off_bye","away_off_bye","home_short_week","away_short_week","away_travel_miles","tz_crossed","div_game","primetime","home_qb_changed","away_qb_changed","home_qb_backup","away_qb_backup","dome","temp","wind","turf","qb_adj_diff","weather_imputed"
+"2026_07_DAL_PHI",2026,7,-0.207781265981452,-0.108029851027303,0.312414879838213,0.0766327844957814,1,0,0,0,0,0,1312.05936657866,1,1,1,1,0,0,0,0,72,8,0,0.0218984541344269,1
