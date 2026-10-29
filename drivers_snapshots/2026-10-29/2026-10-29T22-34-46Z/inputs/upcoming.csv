@@ -1,0 +1,15 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_08_CAR_GB",2026,8,"2026-10-29","20:15","CAR","GB","Bryce Young","Jordan Love",3.5,1.52840028641499,0.599728191952345
+"full_qb_ridge","2026_08_BAL_BUF",2026,8,"2026-11-01","13:00","BAL","BUF","Tyler Huntley","Josh Allen",3,8.3453987557554,0.763277487245344
+"full_qb_ridge","2026_08_TEN_CIN",2026,8,"2026-11-01","13:00","TEN","CIN","Cam Ward","Joe Burrow",11.5,14.7111621254523,0.88714447809231
+"full_qb_ridge","2026_08_ARI_DAL",2026,8,"2026-11-01","13:00","ARI","DAL","Jacoby Brissett","Dak Prescott",7,4.07202091276468,0.651097001513332
+"full_qb_ridge","2026_08_MIN_DET",2026,8,"2026-11-01","13:00","MIN","DET","Kyler Murray","Jared Goff",3,3.00912407679859,0.610874842023945
+"full_qb_ridge","2026_08_IND_JAX",2026,8,"2026-11-01","13:00","IND","JAX","Daniel Jones","Trevor Lawrence",10,10.5841770189046,0.838556135396116
+"full_qb_ridge","2026_08_LV_NYJ",2026,8,"2026-11-01","13:00","LV","NYJ","Kirk Cousins","Geno Smith",1.5,4.13907163343694,0.639309146161271
+"full_qb_ridge","2026_08_CLE_PIT",2026,8,"2026-11-01","13:00","CLE","PIT","Deshaun Watson","Aaron Rodgers",3.5,4.22733958002377,0.635217784421757
+"full_qb_ridge","2026_08_ATL_TB",2026,8,"2026-11-01","13:00","ATL","TB","Michael Penix Jr.","Baker Mayfield",2.5,1.01928280044799,0.526749624473416
+"full_qb_ridge","2026_08_LAC_LA",2026,8,"2026-11-01","16:05","LAC","LA","Justin Herbert","Matthew Stafford",6.5,11.8236555346398,0.811732587750711
+"full_qb_ridge","2026_08_KC_DEN",2026,8,"2026-11-01","16:25","KC","DEN","Patrick Mahomes","Bo Nix",-1.5,-0.366076927971371,0.487842155503631
+"full_qb_ridge","2026_08_NE_MIA",2026,8,"2026-11-01","16:25","NE","MIA","Drake Maye","Malik Willis",-7,-7.09159231011915,0.286137428726716
+"full_qb_ridge","2026_08_PHI_WAS",2026,8,"2026-11-01","20:20","PHI","WAS","Jalen Hurts","Jayden Daniels",6,3.44725426421322,0.622932822108166
+"full_qb_ridge","2026_08_CHI_SEA",2026,8,"2026-11-02","20:15","CHI","SEA","Caleb Williams","Sam Darnold",3,0.955398276166092,0.565761061248529
