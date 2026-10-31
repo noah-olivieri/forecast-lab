@@ -1,0 +1,4 @@
+model,model_version,git_sha,venue,market_ticker,game_id,yes_team,prices_flipped,as_of_ts,p_yes,created_ts,kickoff_ts,market_yes_bid,market_yes_ask,snapshot_ts,horizon,run_id,run_attempt,inputs_stale
+elo,elo-538-default-v0,5ea29442bae0f76bc42c72b687d64c5cf3cde1e0,kalshi,KXNFLGAME-26NOV01LACLAR-LAR,2026_08_LAC_LA,LA,False,2026-10-31T21:15:25Z,0.7964383003188288,2026-10-31T21:15:41Z,2026-11-01T21:05:00Z,0.72,0.73,2026-10-31T21:15:25Z,t24,41242702919,1,False
+home_rate,home-rate-v0,5ea29442bae0f76bc42c72b687d64c5cf3cde1e0,kalshi,KXNFLGAME-26NOV01LACLAR-LAR,2026_08_LAC_LA,LA,False,2026-10-31T21:15:25Z,0.5636920011386279,2026-10-31T21:15:41Z,2026-11-01T21:05:00Z,0.72,0.73,2026-10-31T21:15:25Z,t24,41242702919,1,False
+market_mid,market-mid-v0,5ea29442bae0f76bc42c72b687d64c5cf3cde1e0,kalshi,KXNFLGAME-26NOV01LACLAR-LAR,2026_08_LAC_LA,LA,False,2026-10-31T21:15:25Z,0.725,2026-10-31T21:15:41Z,2026-11-01T21:05:00Z,0.72,0.73,2026-10-31T21:15:25Z,t24,41242702919,1,False
