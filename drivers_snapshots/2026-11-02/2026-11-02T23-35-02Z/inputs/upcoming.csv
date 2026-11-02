@@ -1,0 +1,2 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_08_CHI_SEA",2026,8,"2026-11-02","20:15","CHI","SEA","Caleb Williams","Sam Darnold",3,0.955398276166092,0.565761061248529

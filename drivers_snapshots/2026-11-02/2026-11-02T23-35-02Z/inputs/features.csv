@@ -1,0 +1,2 @@
+"game_id","season","week","pass_off_diff","rush_off_diff","pass_def_diff","rush_def_diff","home","rest_diff","home_off_bye","away_off_bye","home_short_week","away_short_week","away_travel_miles","tz_crossed","div_game","primetime","home_qb_changed","away_qb_changed","home_qb_backup","away_qb_backup","dome","temp","wind","turf","qb_adj_diff","weather_imputed"
+"2026_08_CHI_SEA",2026,8,-0.0775827906907874,-0.141204688948381,0.129281522467597,0.186783623519869,1,-3,0,0,0,0,1733.82236630233,2,0,1,0,0,1,0,0,68.5,4.5,1,-0.0412409737785987,1
