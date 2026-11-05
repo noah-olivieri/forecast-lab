@@ -1,0 +1,32 @@
+{
+ "capture_errors": {
+  "kalshi": [],
+  "polymarket_us": []
+ },
+ "created_ts": "2026-11-05T23:27:37Z",
+ "forecast_lab_sha": "3eaeebd96885cd3c216d5349adb0339e72c412cf",
+ "kickoff_disagreements": [],
+ "mode": "full",
+ "n_excluded": 14,
+ "n_games": 1,
+ "nfl_drivers_sha": "9aa3b116ea905cb9661616aa75dace10ee0a7d74",
+ "purpose": "main",
+ "r_packages": {
+  "dplyr": "1.1.4",
+  "glmnet": "5.1",
+  "jsonlite": "2.0.0",
+  "nflreadr": "1.5.1"
+ },
+ "r_version": "R version 4.5.2 (2025-10-31)",
+ "results_created": "2026-11-05T23:27:31Z",
+ "schedule_downloaded": "2026-11-05T23:16:20Z",
+ "sha256": {
+  "pbp_2026.rds": "66a0c26f48a0e7df5893ffc91878c93a523b0cbd94a3404642ba73db6dfcac35",
+  "renv.lock": "345421d3b2137c5197ac9707a72a3bbe3374166e8542ecb18d51440b762f79ea",
+  "results.rds": "3cae789b056255bfcd0dc95ca4830f416fa09cb5c3f6353d077cba8a25902c45",
+  "schedules_2026.rds": "8be2bd858ea0e17f24d268d8cc006ce5bac3f1810ba6661fd85d0f74d0c9d072"
+ },
+ "slot": "2026-11-06T01:15Z",
+ "timing": "t3",
+ "upcoming_dropped": 0
+}
