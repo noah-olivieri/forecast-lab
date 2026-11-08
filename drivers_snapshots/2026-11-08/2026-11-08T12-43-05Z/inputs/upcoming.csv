@@ -1,0 +1,15 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_09_CIN_ATL",2026,9,"2026-11-08","09:30","CIN","ATL","Joe Burrow","Michael Penix Jr.",-3,-2.78788052978132,0.417741920760905
+"full_qb_ridge","2026_09_DEN_CAR",2026,9,"2026-11-08","13:00","DEN","CAR","Bo Nix","Bryce Young",-2.5,-0.874994284302883,0.467488843230262
+"full_qb_ridge","2026_09_DAL_IND",2026,9,"2026-11-08","13:00","DAL","IND","Dak Prescott","Daniel Jones",-5.5,-0.485299806087748,0.476353751778207
+"full_qb_ridge","2026_09_NYJ_KC",2026,9,"2026-11-08","13:00","NYJ","KC","Geno Smith","Patrick Mahomes",9.5,6.86097537907278,0.71173695742114
+"full_qb_ridge","2026_09_DET_MIA",2026,9,"2026-11-08","13:00","DET","MIA","Jared Goff","Malik Willis",-6.5,-3.9722913891538,0.352708599750772
+"full_qb_ridge","2026_09_CLE_NO",2026,9,"2026-11-08","13:00","CLE","NO","Shedeur Sanders","Tyler Shough",3,6.23341582135017,0.722755750166085
+"full_qb_ridge","2026_09_NYG_PHI",2026,9,"2026-11-08","13:00","NYG","PHI","J.J. McCarthy","Joe Milton III",-3,-4.71853974072243,0.315209489338558
+"full_qb_ridge","2026_09_LA_WAS",2026,9,"2026-11-08","13:00","LA","WAS","Matthew Stafford","Jayden Daniels",-4.5,-5.97228845458624,0.309630069501091
+"full_qb_ridge","2026_09_HOU_LAC",2026,9,"2026-11-08","16:05","HOU","LAC","C.J. Stroud","Justin Herbert",-6,-6.71202341189197,0.252613528905452
+"full_qb_ridge","2026_09_LV_SF",2026,9,"2026-11-08","16:05","LV","SF","Kirk Cousins","Brock Purdy",9.5,12.4413117910426,0.847463110951278
+"full_qb_ridge","2026_09_GB_NE",2026,9,"2026-11-08","16:25","GB","NE","Jordan Love","Drake Maye",3,5.15272912766215,0.685876500565701
+"full_qb_ridge","2026_09_ARI_SEA",2026,9,"2026-11-08","16:25","ARI","SEA","Gardner Minshew","Drew Lock",8.5,5.77984899645681,0.698146550018651
+"full_qb_ridge","2026_09_TB_CHI",2026,9,"2026-11-08","20:20","TB","CHI","Baker Mayfield","Caleb Williams",6,7.37092750362844,0.737881889763383
+"full_qb_ridge","2026_09_BUF_MIN",2026,9,"2026-11-09","20:15","BUF","MIN","Josh Allen","Kyler Murray",-3,-1.76777742186014,0.421140016557853
