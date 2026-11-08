@@ -1,0 +1,7 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_09_HOU_LAC",2026,9,"2026-11-08","16:05","HOU","LAC","C.J. Stroud","Justin Herbert",-5.5,-6.71202341189197,0.252613528905452
+"full_qb_ridge","2026_09_LV_SF",2026,9,"2026-11-08","16:05","LV","SF","Kirk Cousins","Brock Purdy",8.5,12.4413117910426,0.847463110951278
+"full_qb_ridge","2026_09_GB_NE",2026,9,"2026-11-08","16:25","GB","NE","Jordan Love","Drake Maye",3,5.15272912766215,0.685876500565701
+"full_qb_ridge","2026_09_ARI_SEA",2026,9,"2026-11-08","16:25","ARI","SEA","Gardner Minshew","Drew Lock",8.5,5.77984899645681,0.698146550018651
+"full_qb_ridge","2026_09_TB_CHI",2026,9,"2026-11-08","20:20","TB","CHI","Baker Mayfield","Caleb Williams",6,7.37092750362844,0.737881889763383
+"full_qb_ridge","2026_09_BUF_MIN",2026,9,"2026-11-09","20:15","BUF","MIN","Josh Allen","Kyler Murray",-3,-1.76777742186014,0.421140016557853
