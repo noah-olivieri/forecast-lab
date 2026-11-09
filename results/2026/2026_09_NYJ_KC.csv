@@ -1,0 +1,2 @@
+game_id,home_team,away_team,home_score,away_score,y,source,fetched_at_utc
+2026_09_NYJ_KC,KC,NYJ,35,12,1,nflverse schedules (nflreadpy 0.1.5),2026-11-09T23:50:27Z
