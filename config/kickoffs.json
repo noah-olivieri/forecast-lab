@@ -786,12 +786,6 @@
   "kickoff_utc": "2026-11-08T21:05:00Z"
  },
  {
-  "game_id": "2026_09_LV_SF",
-  "away": "LV",
-  "home": "SF",
-  "kickoff_utc": "2026-11-08T21:05:00Z"
- },
- {
   "game_id": "2026_09_ARI_SEA",
   "away": "ARI",
   "home": "SEA",
@@ -801,6 +795,12 @@
   "game_id": "2026_09_GB_NE",
   "away": "GB",
   "home": "NE",
+  "kickoff_utc": "2026-11-08T21:25:00Z"
+ },
+ {
+  "game_id": "2026_09_LV_SF",
+  "away": "LV",
+  "home": "SF",
   "kickoff_utc": "2026-11-08T21:25:00Z"
  },
  {
