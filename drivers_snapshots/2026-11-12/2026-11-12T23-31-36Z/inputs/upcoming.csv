@@ -1,0 +1,15 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_10_WAS_NYG",2026,10,"2026-11-12","20:15","WAS","NYG","Jayden Daniels","J.J. McCarthy",1.5,0.418947109719959,0.553011610018852
+"full_qb_ridge","2026_10_NE_DET",2026,10,"2026-11-15","09:30","NE","DET","Drake Maye","Jared Goff",2.5,-1.67964631600257,0.445296948385743
+"full_qb_ridge","2026_10_KC_ATL",2026,10,"2026-11-15","13:00","KC","ATL","Patrick Mahomes","Michael Penix Jr.",-3,-0.894430331596767,0.477066452545361
+"full_qb_ridge","2026_10_HOU_CLE",2026,10,"2026-11-15","13:00","HOU","CLE","C.J. Stroud","Deshaun Watson",-4.5,-4.30932173895305,0.333944591927389
+"full_qb_ridge","2026_10_MIN_GB",2026,10,"2026-11-15","13:00","MIN","GB","Kirk Cousins","Jordan Love",3,7.94282514895617,0.75313248080638
+"full_qb_ridge","2026_10_MIA_IND",2026,10,"2026-11-15","13:00","MIA","IND","Malik Willis","Daniel Jones",3.5,3.61314984285494,0.614702596552337
+"full_qb_ridge","2026_10_CAR_NO",2026,10,"2026-11-15","13:00","CAR","NO","Bryce Young","Tyler Shough",2.5,-0.446481215510625,0.475511600334701
+"full_qb_ridge","2026_10_BUF_NYJ",2026,10,"2026-11-15","13:00","BUF","NYJ","Josh Allen","Geno Smith",-8.5,-4.63644838044147,0.365642729301289
+"full_qb_ridge","2026_10_JAX_TEN",2026,10,"2026-11-15","13:00","JAX","TEN","Trevor Lawrence","Cam Ward",-10.5,-14.1249691888053,0.156759946885123
+"full_qb_ridge","2026_10_LA_ARI",2026,10,"2026-11-15","16:05","LA","ARI","Matthew Stafford","Gardner Minshew",-9.5,-6.66141783912745,0.295207136604259
+"full_qb_ridge","2026_10_SEA_LV",2026,10,"2026-11-15","16:05","SEA","LV","Sam Darnold","Fernando Mendoza",-6.5,-10.7963806748915,0.169477597559074
+"full_qb_ridge","2026_10_SF_DAL",2026,10,"2026-11-15","16:25","SF","DAL","Brock Purdy","Dak Prescott",-3.5,-4.42374858856714,0.371213611326614
+"full_qb_ridge","2026_10_PIT_CIN",2026,10,"2026-11-15","20:20","PIT","CIN","Aaron Rodgers","Joe Burrow",3.5,2.99644809586739,0.600648147562617
+"full_qb_ridge","2026_10_LAC_BAL",2026,10,"2026-11-16","20:15","LAC","BAL","Justin Herbert","Tyler Huntley",4.5,7.29539677263667,0.706020275914944
