@@ -1,0 +1,2 @@
+game_id,home_team,away_team,home_score,away_score,y,source,fetched_at_utc
+2026_10_WAS_NYG,NYG,WAS,21,24,0,nflverse schedules (nflreadpy 0.1.5),2026-11-13T21:33:51Z
