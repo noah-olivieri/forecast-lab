@@ -1,0 +1,6 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_10_LA_ARI",2026,10,"2026-11-15","16:05","LA","ARI","Matthew Stafford","Gardner Minshew",-10,-6.66141783912745,0.295207136604259
+"full_qb_ridge","2026_10_SEA_LV",2026,10,"2026-11-15","16:05","SEA","LV","Sam Darnold","Fernando Mendoza",-6.5,-10.7963806748915,0.169477597559074
+"full_qb_ridge","2026_10_SF_DAL",2026,10,"2026-11-15","16:25","SF","DAL","Brock Purdy","Dak Prescott",-3.5,-4.42374858856714,0.371213611326614
+"full_qb_ridge","2026_10_PIT_CIN",2026,10,"2026-11-15","20:20","PIT","CIN","Aaron Rodgers","Joe Burrow",3.5,2.99644809586739,0.600648147562617
+"full_qb_ridge","2026_10_LAC_BAL",2026,10,"2026-11-16","20:15","LAC","BAL","Justin Herbert","Tyler Huntley",4.5,7.29539677263667,0.706020275914944
