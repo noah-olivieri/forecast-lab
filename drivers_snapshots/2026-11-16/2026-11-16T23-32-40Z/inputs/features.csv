@@ -1,0 +1,2 @@
+"game_id","season","week","pass_off_diff","rush_off_diff","pass_def_diff","rush_def_diff","home","rest_diff","home_off_bye","away_off_bye","home_short_week","away_short_week","away_travel_miles","tz_crossed","div_game","primetime","home_qb_changed","away_qb_changed","home_qb_backup","away_qb_backup","dome","temp","wind","turf","qb_adj_diff","weather_imputed"
+"2026_10_LAC_BAL",2026,10,0.25497211590051,0.148647664395754,-0.101769018661681,0.0819221165673984,1,3,0,0,0,0,2322.12413649213,3,0,1,1,0,1,0,0,70.5,8,0,-0.0334828553064566,1
