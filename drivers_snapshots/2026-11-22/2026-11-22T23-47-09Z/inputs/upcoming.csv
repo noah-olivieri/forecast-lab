@@ -1,0 +1,6 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_11_NYJ_LAC",2026,11,"2026-11-22","16:05","NYJ","LAC","Geno Smith","Justin Herbert",3,-0.784765710856996,0.464844546499356
+"full_qb_ridge","2026_11_LV_DEN",2026,11,"2026-11-22","16:25","LV","DEN","Fernando Mendoza","Bo Nix",11.5,12.64863921141,0.852897169242172
+"full_qb_ridge","2026_11_JAX_NYG",2026,11,"2026-11-22","16:25","JAX","NYG","Trevor Lawrence","J.J. McCarthy",-6,-4.72356014239225,0.31749402916088
+"full_qb_ridge","2026_11_MIN_SF",2026,11,"2026-11-22","20:20","MIN","SF","Kirk Cousins","Brock Purdy",3.5,10.0570180799754,0.774897604259096
+"full_qb_ridge","2026_11_CIN_WAS",2026,11,"2026-11-23","20:15","CIN","WAS","Joe Burrow","Jayden Daniels",-6,-1.49201922127553,0.401859594555569
