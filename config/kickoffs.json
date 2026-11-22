@@ -918,12 +918,6 @@
   "kickoff_utc": "2026-11-22T18:00:00Z"
  },
  {
-  "game_id": "2026_11_JAX_NYG",
-  "away": "JAX",
-  "home": "NYG",
-  "kickoff_utc": "2026-11-22T18:00:00Z"
- },
- {
   "game_id": "2026_11_MIA_BUF",
   "away": "MIA",
   "home": "BUF",
@@ -933,6 +927,12 @@
   "game_id": "2026_11_NO_CHI",
   "away": "NO",
   "home": "CHI",
+  "kickoff_utc": "2026-11-22T18:00:00Z"
+ },
+ {
+  "game_id": "2026_11_PIT_PHI",
+  "away": "PIT",
+  "home": "PHI",
   "kickoff_utc": "2026-11-22T18:00:00Z"
  },
  {
@@ -954,15 +954,15 @@
   "kickoff_utc": "2026-11-22T21:05:00Z"
  },
  {
-  "game_id": "2026_11_LV_DEN",
-  "away": "LV",
-  "home": "DEN",
+  "game_id": "2026_11_JAX_NYG",
+  "away": "JAX",
+  "home": "NYG",
   "kickoff_utc": "2026-11-22T21:25:00Z"
  },
  {
-  "game_id": "2026_11_PIT_PHI",
-  "away": "PIT",
-  "home": "PHI",
+  "game_id": "2026_11_LV_DEN",
+  "away": "LV",
+  "home": "DEN",
   "kickoff_utc": "2026-11-22T21:25:00Z"
  },
  {
