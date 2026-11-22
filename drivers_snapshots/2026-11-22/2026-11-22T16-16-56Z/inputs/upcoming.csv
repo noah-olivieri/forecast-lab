@@ -1,0 +1,13 @@
+"model","game_id","season","week","gameday","gametime","away_team","home_team","away_qb_name","home_qb_name","spread","pred_margin","pred_win"
+"full_qb_ridge","2026_11_MIA_BUF",2026,11,"2026-11-22","13:00","MIA","BUF","Kyle McCord","Josh Allen",16.5,17.6499673659512,0.913257646397467
+"full_qb_ridge","2026_11_BAL_CAR",2026,11,"2026-11-22","13:00","BAL","CAR","Tyler Huntley","Bryce Young",3,3.04954046295055,0.591880968377074
+"full_qb_ridge","2026_11_NO_CHI",2026,11,"2026-11-22","13:00","NO","CHI","Tyler Shough","Caleb Williams",11.5,9.17428092063862,0.784752365843969
+"full_qb_ridge","2026_11_TEN_DAL",2026,11,"2026-11-22","13:00","TEN","DAL","Cam Ward","Dak Prescott",7.5,7.69025107979251,0.745136696098798
+"full_qb_ridge","2026_11_TB_DET",2026,11,"2026-11-22","13:00","TB","DET","Baker Mayfield","Jared Goff",3.5,3.23329271590437,0.587486445655408
+"full_qb_ridge","2026_11_ARI_KC",2026,11,"2026-11-22","13:00","ARI","KC","Josh Johnson","Patrick Mahomes",15.5,8.04510780342811,0.748832540278563
+"full_qb_ridge","2026_11_JAX_NYG",2026,11,"2026-11-22","13:00","JAX","NYG","Trevor Lawrence","J.J. McCarthy",-6,-4.72356014239225,0.31749402916088
+"full_qb_ridge","2026_11_NYJ_LAC",2026,11,"2026-11-22","16:05","NYJ","LAC","Geno Smith","Justin Herbert",3,-0.784765710856996,0.464844546499356
+"full_qb_ridge","2026_11_LV_DEN",2026,11,"2026-11-22","16:25","LV","DEN","Fernando Mendoza","Bo Nix",10.5,12.64863921141,0.852897169242172
+"full_qb_ridge","2026_11_PIT_PHI",2026,11,"2026-11-22","16:25","PIT","PHI","Aaron Rodgers","Joe Milton III",-3.5,-4.37379386998104,0.385544097449533
+"full_qb_ridge","2026_11_MIN_SF",2026,11,"2026-11-22","20:20","MIN","SF","Kirk Cousins","Brock Purdy",3.5,10.0570180799754,0.774897604259096
+"full_qb_ridge","2026_11_CIN_WAS",2026,11,"2026-11-23","20:15","CIN","WAS","Joe Burrow","Jayden Daniels",-6,-1.49201922127553,0.401859594555569
