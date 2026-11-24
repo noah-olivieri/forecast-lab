@@ -1,0 +1,2 @@
+game_id,home_team,away_team,home_score,away_score,y,source,fetched_at_utc
+2026_11_MIN_SF,SF,MIN,35,10,1,nflverse schedules (nflreadpy 0.1.5),2026-11-24T02:31:44Z
